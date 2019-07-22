@@ -1,0 +1,10 @@
+syntax = "proto3";
+package bluetoothpb;
+
+message Response {
+	message ChessBoard {
+		bytes image = 1;
+	}
+	ChessBoard chess_board = 1;
+
+}
