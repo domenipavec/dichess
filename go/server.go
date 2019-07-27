@@ -95,7 +95,7 @@ func (o *bluetoothObserver) Update(game *chess.Game) error {
 	if err := chessimg.SVG(&imgBuffer, game.Position().Board()); err != nil {
 		return err
 	}
-	log.Println(string(imgBuffer.Bytes()))
+	log.Println(imgBuffer.String())
 	msg := &bluetoothpb.Response{
 		ChessBoard: &bluetoothpb.Response_ChessBoard{
 			Image: imgBuffer.Bytes(),

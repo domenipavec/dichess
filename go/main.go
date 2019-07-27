@@ -18,6 +18,11 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	if err := voiceRecognition(ctx); err != nil {
+		log.Fatal(err)
+	}
+	return
+
 	observers := &Observers{}
 	server := &Server{
 		Channel:   channel,
