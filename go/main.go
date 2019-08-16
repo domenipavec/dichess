@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log"
-	"time"
 
 	"github.com/Zemanta/gracefulshutdown"
 	"github.com/Zemanta/gracefulshutdown/shutdownmanagers/posixsignal"
@@ -45,6 +44,7 @@ func main() {
 	// return
 
 	observers := &Observers{}
+	observers.Add(&LoggingObserver{})
 	server := &Server{
 		Channel:   channel,
 		Observers: observers,
@@ -57,7 +57,7 @@ func main() {
 	dichessProfile := rfcomm.NewSerialProfile("dichess", "00001101-0000-1000-8000-00805f9b34fb", channel)
 	// androidAutoProfile := rfcomm.NewSerialProfile("androidauto", "4de17a00-52cb-11e6-bdf4-0800200c9a66", channel)
 
-	err = dichessProfile.Register()
+	err := dichessProfile.Register()
 	if err != nil {
 		log.Fatalf("Could not register android audo profile: %v", err)
 	}
@@ -73,7 +73,6 @@ func main() {
 	}
 
 	go func() {
-		time.Sleep(10 * time.Second)
 		if err := newGame(observers); err != nil {
 			log.Println(err)
 		}

@@ -32,8 +32,17 @@ func (o *Observers) Update(game *chess.Game) {
 	for _, observer := range o.observers {
 		if err := observer.Update(game); err != nil {
 			log.Println(err)
+			continue
 		}
 		o.observers[i] = observer
+		i++
 	}
 	o.observers = o.observers[:i]
+}
+
+type LoggingObserver struct{}
+
+func (o *LoggingObserver) Update(game *chess.Game) error {
+	log.Println(game.Position().Board().Draw())
+	return nil
 }

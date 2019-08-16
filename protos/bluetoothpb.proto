@@ -3,8 +3,7 @@ package bluetoothpb;
 
 message Response {
 	message ChessBoard {
-		bytes image = 1;
-		string pgn = 2;
+		string fen = 1;
 	}
 	ChessBoard chess_board = 1;
 

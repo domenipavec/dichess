@@ -72,6 +72,7 @@ func writeProto(w io.Writer, msg proto.Message) error {
 		return errors.Wrap(err, "could not marshal proto message")
 	}
 
+	log.Println(len(data))
 	if err := binary.Write(w, binary.BigEndian, uint64(len(data))); err != nil {
 		return errors.Wrap(err, "could not write data length")
 	}
@@ -91,7 +92,7 @@ type bluetoothObserver struct {
 func (o *bluetoothObserver) Update(game *chess.Game) error {
 	msg := &bluetoothpb.Response{
 		ChessBoard: &bluetoothpb.Response_ChessBoard{
-			Pgn: game.String(),
+			Fen: game.FEN(),
 		},
 	}
 
