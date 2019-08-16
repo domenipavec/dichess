@@ -12,6 +12,7 @@ import 'package:protobuf/protobuf.dart' as $pb;
 class Response_ChessBoard extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo('Response.ChessBoard', package: const $pb.PackageName('bluetoothpb'))
     ..a<$core.List<$core.int>>(1, 'image', $pb.PbFieldType.OY)
+    ..aOS(2, 'pgn')
     ..hasRequiredFields = false
   ;
 
@@ -33,6 +34,11 @@ class Response_ChessBoard extends $pb.GeneratedMessage {
   set image($core.List<$core.int> v) { $_setBytes(0, v); }
   $core.bool hasImage() => $_has(0);
   void clearImage() => clearField(1);
+
+  $core.String get pgn => $_getS(1, '');
+  set pgn($core.String v) { $_setString(1, v); }
+  $core.bool hasPgn() => $_has(1);
+  void clearPgn() => clearField(2);
 }
 
 class Response extends $pb.GeneratedMessage {

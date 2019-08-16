@@ -18,10 +18,31 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	if err := voiceRecognition(ctx); err != nil {
-		log.Fatal(err)
-	}
-	return
+	// Make sure periph is initialized.
+	// if _, err := host.Init(); err != nil {
+	//     log.Fatal(err)
+	// }
+	//
+	// matrix, err := hardware.NewMatrix()
+	// if err != nil {
+	//     log.Fatal(err)
+	// }
+	// for {
+	//     data, err := matrix.Read()
+	//     if err != nil {
+	//         log.Fatal(err)
+	//     }
+	//     log.Println("start")
+	//     for _, row := range data {
+	//         log.Println(row)
+	//     }
+	//     time.Sleep(time.Second)
+	// }
+	// return
+	// if err := voiceRecognition(ctx); err != nil {
+	//     log.Fatal(err)
+	// }
+	// return
 
 	observers := &Observers{}
 	server := &Server{
@@ -36,7 +57,7 @@ func main() {
 	dichessProfile := rfcomm.NewSerialProfile("dichess", "00001101-0000-1000-8000-00805f9b34fb", channel)
 	// androidAutoProfile := rfcomm.NewSerialProfile("androidauto", "4de17a00-52cb-11e6-bdf4-0800200c9a66", channel)
 
-	err := dichessProfile.Register()
+	err = dichessProfile.Register()
 	if err != nil {
 		log.Fatalf("Could not register android audo profile: %v", err)
 	}

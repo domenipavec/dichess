@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -13,7 +12,6 @@ import (
 	"github.com/matematik7/dicar-go/btserver/rfcomm"
 	"github.com/matematik7/dichess/go/bluetoothpb"
 	"github.com/notnil/chess"
-	"github.com/notnil/chessimg"
 	"github.com/pkg/errors"
 )
 
@@ -91,14 +89,9 @@ type bluetoothObserver struct {
 }
 
 func (o *bluetoothObserver) Update(game *chess.Game) error {
-	var imgBuffer bytes.Buffer
-	if err := chessimg.SVG(&imgBuffer, game.Position().Board()); err != nil {
-		return err
-	}
-	log.Println(imgBuffer.String())
 	msg := &bluetoothpb.Response{
 		ChessBoard: &bluetoothpb.Response_ChessBoard{
-			Image: imgBuffer.Bytes(),
+			Pgn: game.String(),
 		},
 	}
 

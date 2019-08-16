@@ -4,6 +4,7 @@ package bluetoothpb;
 message Response {
 	message ChessBoard {
 		bytes image = 1;
+		string pgn = 2;
 	}
 	ChessBoard chess_board = 1;
 
