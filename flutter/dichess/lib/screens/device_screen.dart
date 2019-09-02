@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_chess_board/flutter_chess_board.dart';
 
 import 'package:dichess/bluetoothpb/bluetoothpb.pb.dart';
 import 'package:dichess/util/length_decoder.dart';
@@ -19,11 +19,18 @@ class DeviceScreen extends StatefulWidget {
 
 class _DeviceState extends State<DeviceScreen> {
   StreamSubscription<Uint8List> _streamSubscrition;
-  SvgPicture chessBoard;
+  ChessBoardController _chessController;
+  ChessBoard _chessBoard;
 
   @override
   void initState() {
     super.initState();
+
+    _chessController = ChessBoardController();
+    _chessBoard = ChessBoard(
+      enableUserMoves: false,
+      chessBoardController: _chessController,
+    );
 
     BluetoothConnection.toAddress(widget.device.address).then((connection) {
       connection.output.add(Uint8List.fromList("something somethhing".runes.toList()));
@@ -31,10 +38,12 @@ class _DeviceState extends State<DeviceScreen> {
 
       _streamSubscrition = connection.input.transform(StreamTransformer.fromBind(lengthDecoder)).listen((r) {
         var response = Response.fromBuffer(r);
+        print(response);
 
         if (response.hasChessBoard()) {
           setState(() {
-            chessBoard = SvgPicture.memory(response.chessBoard.image);
+            print(_chessController.game.load(response.chessBoard.fen));
+            print(_chessController.refreshBoard());
           });
         }
       });
@@ -59,7 +68,7 @@ class _DeviceState extends State<DeviceScreen> {
       appBar: AppBar(
         title: Text(widget.device.name),
       ),
-      body: chessBoard,
+      body: _chessBoard,
     );
   }
 }

@@ -34,5 +34,6 @@ Stream<Uint8List> lengthDecoder(Stream<Uint8List> input) async* {
     buffer = WriteBuffer();
     buffer.putUint8List(data.buffer.asUint8List(wantedLength));
     gotLength -= wantedLength;
+    wantedLength = null;
   }
 }

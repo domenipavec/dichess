@@ -24,7 +24,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
   flutter_bluetooth_serial: ^0.2.0
-  flutter_svg: ^0.13.1
+  flutter_chess_board: ^0.9.4
   protobuf: ^0.13.15
 
 dev_dependencies:
