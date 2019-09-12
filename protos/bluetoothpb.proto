@@ -7,4 +7,25 @@ message Response {
 	}
 	ChessBoard chess_board = 1;
 
+	message WifiNetwork {
+		string ssid = 1;
+	}
+	repeated WifiNetwork configured_networks = 2;
+	repeated WifiNetwork discovered_networks = 3;
+
+}
+message Request {
+	enum Type {
+		NOOP = 0;
+
+		START_WIFI_SCAN = 1;
+		STOP_WIFI_SCAN = 2;
+		CONFIGURE_WIFI = 3;
+		FORGET_WIFI = 4;
+		CONNECT_WIFI = 5;
+	}
+	Type type = 1;
+
+	string wifi_ssid = 2;
+	string wifi_psk = 3;
 }

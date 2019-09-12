@@ -2,14 +2,22 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
+	"time"
 
 	"github.com/Zemanta/gracefulshutdown"
 	"github.com/Zemanta/gracefulshutdown/shutdownmanagers/posixsignal"
+	wpasupplicant "github.com/dpifke/golang-wpasupplicant"
 	"github.com/matematik7/dicar-go/btserver/rfcomm"
-	"github.com/muka/go-bluetooth/api"
-	"github.com/pkg/errors"
+	"github.com/matematik7/dichess/go/bluetooth"
+	"github.com/matematik7/dichess/go/chess_state"
+	"github.com/matematik7/dichess/go/hardware"
+	"github.com/matematik7/dichess/go/voice"
+	texttospeechpb "google.golang.org/genproto/googleapis/cloud/texttospeech/v1"
 )
+
+var noHardware = flag.Bool("no_hardware", false, "disable hardware init and use fake")
 
 const channel = 1
 
@@ -17,37 +25,58 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Make sure periph is initialized.
-	// if _, err := host.Init(); err != nil {
-	//     log.Fatal(err)
-	// }
-	//
-	// matrix, err := hardware.NewMatrix()
-	// if err != nil {
-	//     log.Fatal(err)
-	// }
+	flag.Parse()
+	observers := &chess_state.Observers{}
+	observers.Add(&chess_state.LoggingObserver{})
+
+	hw := hardware.New()
+	if !*noHardware {
+		if err := hw.Initialize(); err != nil {
+			log.Fatal(err)
+		}
+		observers.Add(hw)
+	}
+
 	// for {
-	//     data, err := matrix.Read()
+	//     data, err := hw.Matrix.Read()
 	//     if err != nil {
 	//         log.Fatal(err)
 	//     }
-	//     log.Println("start")
-	//     for _, row := range data {
-	//         log.Println(row)
+	//     for i := range data {
+	//         line := ""
+	//         for j := range data[i] {
+	//             line += chess_state.Square(i, j).String()
+	//             line += " "
+	//             if data[i][j] {
+	//                 line += "+"
+	//             } else {
+	//                 line += "-"
+	//             }
+	//             line += " "
+	//         }
+	//         log.Println(line)
 	//     }
+	//     log.Println("done")
 	//     time.Sleep(time.Second)
 	// }
-	// return
-	// if err := voiceRecognition(ctx); err != nil {
-	//     log.Fatal(err)
-	// }
-	// return
 
-	observers := &Observers{}
-	observers.Add(&LoggingObserver{})
-	server := &Server{
+	voice, err := voice.New(ctx)
+	if err != nil {
+		log.Printf("Couldn't init voice: %v", err)
+	} else {
+		observers.Add(voice)
+	}
+
+	// wpa, err := wpasupplicant.Unixgram("wlan0")
+	wpa, err := wpasupplicant.Unixgram("wlx180f76fa4d9a")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	server := &bluetooth.Server{
 		Channel:   channel,
 		Observers: observers,
+		Wpa:       wpa,
 	}
 
 	gs := gracefulshutdown.New()
@@ -57,8 +86,7 @@ func main() {
 	dichessProfile := rfcomm.NewSerialProfile("dichess", "00001101-0000-1000-8000-00805f9b34fb", channel)
 	// androidAutoProfile := rfcomm.NewSerialProfile("androidauto", "4de17a00-52cb-11e6-bdf4-0800200c9a66", channel)
 
-	err := dichessProfile.Register()
-	if err != nil {
+	if err := dichessProfile.Register(); err != nil {
 		log.Fatalf("Could not register android audo profile: %v", err)
 	}
 	gs.AddShutdownCallback(dichessProfile)
@@ -68,12 +96,12 @@ func main() {
 		log.Fatalf("Could not start graceful shutdown: %v", err)
 	}
 
-	if err := startBluetoothController(ctx); err != nil {
+	if err := bluetooth.StartController(ctx); err != nil {
 		log.Fatal(err)
 	}
 
 	go func() {
-		if err := newGame(observers); err != nil {
+		if err := newGame(observers, hw, voice); err != nil {
 			log.Println(err)
 		}
 	}()
@@ -81,67 +109,67 @@ func main() {
 	log.Fatal(server.Serve())
 }
 
-func newGame(observers *Observers) error {
-	player1, err := NewUciPlayer()
+func newGame(observers *chess_state.Observers, hw *hardware.Hardware, voice *voice.Voice) error {
+	player2, err := chess_state.NewUciPlayer()
 	if err != nil {
 		return err
 	}
-	player2, err := NewUciPlayer()
-	if err != nil {
-		return err
+	player1 := &chess_state.HumanPlayer{
+		Inputs: []chess_state.HumanInput{
+			hw,
+			voice,
+		},
 	}
-	cs := NewChessState(player1, player2, observers)
+	game := chess_state.NewGame(player1, player2, observers)
 	go func() {
-		if err := cs.Play(); err != nil {
+		for {
+			time.Sleep(time.Second)
+			data, err := hw.ReadMatrix()
+			log.Println(data)
+			if err != nil {
+				log.Fatal(err)
+			}
+			done := true
+			for i := 0; i < 8; i++ {
+				for j := 0; j < 2; j++ {
+					if !data[i][j] {
+						log.Printf("Missing (%v, %v)", i, j)
+						done = false
+					}
+				}
+			}
+			for i := 0; i < 8; i++ {
+				for j := 6; j < 8; j++ {
+					if i == 0 && j == 6 {
+						continue
+					}
+					if i == 2 && j == 6 {
+						continue
+					}
+					if !data[i][j] {
+						log.Printf("Missing (%v, %v)", i, j)
+						done = false
+					}
+				}
+			}
+			if done {
+				break
+			}
+		}
+		log.Println("Ready")
+		time.Sleep(time.Second)
+		if err := voice.Say("What happens now?", texttospeechpb.SsmlVoiceGender_FEMALE); err != nil {
+			log.Println(err)
+		}
+		time.Sleep(time.Second)
+		if err := voice.Say("Well, white moves first, and then, we play.", texttospeechpb.SsmlVoiceGender_MALE); err != nil {
+			log.Println(err)
+		}
+		time.Sleep(time.Second)
+		if err := game.Play(); err != nil {
 			log.Println(err)
 		}
 	}()
-
-	return nil
-}
-
-func startBluetoothController(ctx context.Context) error {
-	// cmd := exec.CommandContext(ctx, "btattach", "-N", "-S", "115200", "-P", "bcm", "-B", "/dev/ttyAMA0")
-	// cmd.Stderr = os.Stderr
-	// cmd.Stdout = os.Stdout
-	// err := cmd.Start()
-	// if err != nil {
-	//     return errors.Wrap(err, "could not start btattach")
-	// }
-	//
-	// go func() {
-	//     err := cmd.Wait()
-	//     log.Printf("btattach exited with: %v", err)
-	// }()
-	//
-	// for i := 0; i < 60; i++ {
-	//     time.Sleep(time.Second)
-	//     exists, err := api.AdapterExists("hci0")
-	//     if err != nil {
-	//         return errors.Wrap(err, "could not check for adapter hci0")
-	//     }
-	//     if exists {
-	//         break
-	//     }
-	// }
-
-	adapter, err := api.GetAdapter("hci0")
-	if err != nil {
-		return errors.Wrapf(err, "couldn't find adapter %v", "hci0")
-	}
-
-	if err := adapter.SetProperty("Powered", true); err != nil {
-		return errors.Wrap(err, "couldn't set powered to true")
-	}
-	if err := adapter.SetProperty("Alias", "dichess"); err != nil {
-		return errors.Wrap(err, "couldn't set powered to true")
-	}
-	if err := adapter.SetProperty("DiscoverableTimeout", uint32(0)); err != nil {
-		return errors.Wrap(err, "couldn't set discoverable timeout to 0")
-	}
-	if err := adapter.SetProperty("Discoverable", true); err != nil {
-		return errors.Wrap(err, "couldn't set discoverable to true")
-	}
 
 	return nil
 }

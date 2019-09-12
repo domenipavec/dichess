@@ -16,6 +16,15 @@ class _FindDevicesState extends State<FindDevicesScreen> {
   List<BluetoothDevice> devices = [];
   bool isDiscovering = false;
 
+  void _add(BluetoothDevice d) {
+    if (d.name != "dichess") {
+      return;
+    }
+    setState(() {
+      devices.add(d);
+    });
+  }
+
   Future<void> _restartDiscovery() {
     setState(() {
       isDiscovering = true;
@@ -31,9 +40,7 @@ class _FindDevicesState extends State<FindDevicesScreen> {
 //    });
 
     var _streamSubscription = FlutterBluetoothSerial.instance.startDiscovery().listen((r) {
-      setState(() {
-        devices.add(r.device);
-      });
+      _add(r.device);
     });
 
     _streamSubscription.onDone(() {

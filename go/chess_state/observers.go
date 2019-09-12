@@ -1,4 +1,4 @@
-package main
+package chess_state
 
 import (
 	"log"
@@ -8,7 +8,7 @@ import (
 )
 
 type Observer interface {
-	Update(*chess.Game) error
+	Update(*chess.Game, *Move) error
 }
 
 type Observers struct {
@@ -24,25 +24,34 @@ func (o *Observers) Add(observer Observer) {
 }
 
 // Update calls update on all observers, removing observers that return error.
-func (o *Observers) Update(game *chess.Game) {
+func (o *Observers) Update(game *chess.Game, move *Move) {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
 
-	i := 0
+	errChan := make(chan error)
 	for _, observer := range o.observers {
-		if err := observer.Update(game); err != nil {
+		observer := observer
+		go func() {
+			errChan <- observer.Update(game, move)
+		}()
+	}
+
+	// i := 0
+	for range o.observers {
+		if err := <-errChan; err != nil {
 			log.Println(err)
 			continue
 		}
-		o.observers[i] = observer
-		i++
+		// TODO: figure out if we need to remove observer on error
+		// o.observers[i] = observer
+		// i++
 	}
-	o.observers = o.observers[:i]
+	// o.observers = o.observers[:i]
 }
 
 type LoggingObserver struct{}
 
-func (o *LoggingObserver) Update(game *chess.Game) error {
+func (o *LoggingObserver) Update(game *chess.Game, move *Move) error {
 	log.Println(game.Position().Board().Draw())
 	return nil
 }
