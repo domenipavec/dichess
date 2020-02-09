@@ -9,9 +9,13 @@ message Response {
 
 	message WifiNetwork {
 		string ssid = 1;
+		bool connected = 2;
+		bool available = 3;
+		bool saved = 4;
+		bool connecting = 5;
+		bool failed = 6;
 	}
-	repeated WifiNetwork configured_networks = 2;
-	repeated WifiNetwork discovered_networks = 3;
+	repeated WifiNetwork networks = 2;
 
 }
 message Request {

@@ -8,18 +8,18 @@ import (
 
 	"github.com/Zemanta/gracefulshutdown"
 	"github.com/Zemanta/gracefulshutdown/shutdownmanagers/posixsignal"
-	wpasupplicant "github.com/dpifke/golang-wpasupplicant"
 	"github.com/matematik7/dicar-go/btserver/rfcomm"
 	"github.com/matematik7/dichess/go/bluetooth"
 	"github.com/matematik7/dichess/go/chess_state"
 	"github.com/matematik7/dichess/go/hardware"
 	"github.com/matematik7/dichess/go/voice"
+	"github.com/matematik7/dichess/go/wpa"
 	texttospeechpb "google.golang.org/genproto/googleapis/cloud/texttospeech/v1"
 )
 
 var noHardware = flag.Bool("no_hardware", false, "disable hardware init and use fake")
 
-const channel = 1
+const btChannel = 1
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -67,14 +67,13 @@ func main() {
 		observers.Add(voice)
 	}
 
-	// wpa, err := wpasupplicant.Unixgram("wlan0")
-	wpa, err := wpasupplicant.Unixgram("wlx180f76fa4d9a")
+	wpa, err := wpa.InitWpa()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	server := &bluetooth.Server{
-		Channel:   channel,
+		Channel:   btChannel,
 		Observers: observers,
 		Wpa:       wpa,
 	}
@@ -82,9 +81,9 @@ func main() {
 	gs := gracefulshutdown.New()
 	gs.AddShutdownManager(posixsignal.NewPosixSignalManager())
 
-	// dichessProfile := rfcomm.NewSerialProfile("dichess", "4f067110-8c71-488a-abf1-5606375d0dd8", channel)
-	dichessProfile := rfcomm.NewSerialProfile("dichess", "00001101-0000-1000-8000-00805f9b34fb", channel)
-	// androidAutoProfile := rfcomm.NewSerialProfile("androidauto", "4de17a00-52cb-11e6-bdf4-0800200c9a66", channel)
+	// dichessProfile := rfcomm.NewSerialProfile("dichess", "4f067110-8c71-488a-abf1-5606375d0dd8", btChannel)
+	dichessProfile := rfcomm.NewSerialProfile("dichess", "00001101-0000-1000-8000-00805f9b34fb", btChannel)
+	// androidAutoProfile := rfcomm.NewSerialProfile("androidauto", "4de17a00-52cb-11e6-bdf4-0800200c9a66", btChannel)
 
 	if err := dichessProfile.Register(); err != nil {
 		log.Fatalf("Could not register android audo profile: %v", err)
@@ -100,11 +99,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	go func() {
-		if err := newGame(observers, hw, voice); err != nil {
-			log.Println(err)
-		}
-	}()
+	// go func() {
+	//     if err := newGame(observers, hw, voice); err != nil {
+	//         log.Println(err)
+	//     }
+	// }()
 
 	log.Fatal(server.Serve())
 }

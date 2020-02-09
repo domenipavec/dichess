@@ -9,8 +9,7 @@ const Response$json = const {
   '1': 'Response',
   '2': const [
     const {'1': 'chess_board', '3': 1, '4': 1, '5': 11, '6': '.bluetoothpb.Response.ChessBoard', '10': 'chessBoard'},
-    const {'1': 'configured_networks', '3': 2, '4': 3, '5': 11, '6': '.bluetoothpb.Response.WifiNetwork', '10': 'configuredNetworks'},
-    const {'1': 'discovered_networks', '3': 3, '4': 3, '5': 11, '6': '.bluetoothpb.Response.WifiNetwork', '10': 'discoveredNetworks'},
+    const {'1': 'networks', '3': 2, '4': 3, '5': 11, '6': '.bluetoothpb.Response.WifiNetwork', '10': 'networks'},
   ],
   '3': const [Response_ChessBoard$json, Response_WifiNetwork$json],
 };
@@ -26,6 +25,11 @@ const Response_WifiNetwork$json = const {
   '1': 'WifiNetwork',
   '2': const [
     const {'1': 'ssid', '3': 1, '4': 1, '5': 9, '10': 'ssid'},
+    const {'1': 'connected', '3': 2, '4': 1, '5': 8, '10': 'connected'},
+    const {'1': 'available', '3': 3, '4': 1, '5': 8, '10': 'available'},
+    const {'1': 'saved', '3': 4, '4': 1, '5': 8, '10': 'saved'},
+    const {'1': 'connecting', '3': 5, '4': 1, '5': 8, '10': 'connecting'},
+    const {'1': 'failed', '3': 6, '4': 1, '5': 8, '10': 'failed'},
   ],
 };
 

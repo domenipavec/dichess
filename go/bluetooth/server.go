@@ -9,6 +9,7 @@ import (
 	wpasupplicant "github.com/dpifke/golang-wpasupplicant"
 	"github.com/matematik7/dicar-go/btserver/rfcomm"
 	"github.com/matematik7/dichess/go/chess_state"
+	"github.com/matematik7/dichess/go/wpa"
 	"github.com/pkg/errors"
 )
 
@@ -17,7 +18,7 @@ type Server struct {
 	Observers *chess_state.Observers
 
 	mutex sync.Mutex
-	Wpa   wpasupplicant.Conn
+	Wpa   *wpa.Wpa
 
 	ln net.Listener
 }
@@ -53,11 +54,12 @@ func (s *Server) Handle(conn net.Conn) {
 	s.Observers.Add(handler)
 
 	if err := handler.Handle(); err != nil {
-		log.Println(err)
+		log.Printf("Handler exited: %v", err)
+		return
 	}
 }
 func (s *Server) getNetwork(ssid string) (wpasupplicant.ConfiguredNetwork, error) {
-	networks, err := s.Wpa.ListNetworks()
+	networks, err := s.Wpa.Conn.ListNetworks()
 	if err != nil {
 		return nil, errors.Wrap(err, "could not list wifi networks")
 	}
