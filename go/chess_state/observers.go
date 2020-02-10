@@ -3,12 +3,11 @@ package chess_state
 import (
 	"log"
 	"sync"
-
-	"github.com/notnil/chess"
 )
 
+// Observer should use game.Game as read only
 type Observer interface {
-	Update(*chess.Game, *Move) error
+	Update(*Game, *Move) error
 }
 
 type Observers struct {
@@ -24,7 +23,7 @@ func (o *Observers) Add(observer Observer) {
 }
 
 // Update calls update on all observers, removing observers that return error.
-func (o *Observers) Update(game *chess.Game, move *Move) {
+func (o *Observers) Update(game *Game, move *Move) {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
 
@@ -51,7 +50,7 @@ func (o *Observers) Update(game *chess.Game, move *Move) {
 
 type LoggingObserver struct{}
 
-func (o *LoggingObserver) Update(game *chess.Game, move *Move) error {
-	log.Println(game.Position().Board().Draw())
+func (o *LoggingObserver) Update(game *Game, move *Move) error {
+	log.Println(game.Game.Position().Board().Draw())
 	return nil
 }

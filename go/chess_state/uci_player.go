@@ -2,6 +2,7 @@ package chess_state
 
 import (
 	"github.com/freeeve/uci"
+	"github.com/matematik7/dichess/go/bluetoothpb"
 	"github.com/notnil/chess"
 )
 
@@ -9,7 +10,7 @@ type UciPlayer struct {
 	engine *uci.Engine
 }
 
-func NewUciPlayer() (*UciPlayer, error) {
+func NewUciPlayer(cs *bluetoothpb.Settings_ComputerSettings) (*UciPlayer, error) {
 	engine, err := uci.NewEngine("/home/pi/stockfish")
 	if err != nil {
 		return nil, err

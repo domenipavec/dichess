@@ -10,7 +10,6 @@ import (
 
 	"github.com/matematik7/dichess/go/bluetoothpb"
 	"github.com/matematik7/dichess/go/chess_state"
-	"github.com/notnil/chess"
 	"github.com/pkg/errors"
 )
 
@@ -21,10 +20,16 @@ type connHandler struct {
 	wifiSenderStop chan struct{}
 }
 
-func (h *connHandler) Update(game *chess.Game, move *chess_state.Move) error {
+func (h *connHandler) Update(game *chess_state.Game, move *chess_state.Move) error {
+	return h.sendUpdate(game, move, nil)
+}
+
+func (h *connHandler) sendUpdate(game *chess_state.Game, move *chess_state.Move, settings *bluetoothpb.Settings) error {
 	msg := &bluetoothpb.Response{
+		GameInProgress: game != nil,
+		Settings:       settings,
 		ChessBoard: &bluetoothpb.Response_ChessBoard{
-			Fen: game.FEN(),
+			Fen: game.Game.FEN(),
 		},
 	}
 
@@ -32,6 +37,9 @@ func (h *connHandler) Update(game *chess.Game, move *chess_state.Move) error {
 }
 
 func (h *connHandler) Handle() error {
+	if err := h.sendUpdate(h.server.Controller.GetGame(), nil, h.server.Controller.GetSettings()); err != nil {
+		return err
+	}
 	for {
 		request := &bluetoothpb.Request{}
 		if err := readProto(h.conn, request); err != nil {

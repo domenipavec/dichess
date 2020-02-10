@@ -14,8 +14,8 @@ import (
 )
 
 type Server struct {
-	Channel   int
-	Observers *chess_state.Observers
+	Channel    int
+	Controller *chess_state.Controller
 
 	mutex sync.Mutex
 	Wpa   *wpa.Wpa
@@ -51,7 +51,10 @@ func (s *Server) Handle(conn net.Conn) {
 	}()
 
 	handler := &connHandler{conn: conn, server: s}
-	s.Observers.Add(handler)
+	game := s.Controller.GetGame()
+	if game != nil {
+		game.Observers.Add(handler)
+	}
 
 	if err := handler.Handle(); err != nil {
 		log.Printf("Handler exited: %v", err)

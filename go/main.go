@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"log"
-	"time"
 
 	"github.com/Zemanta/gracefulshutdown"
 	"github.com/Zemanta/gracefulshutdown/shutdownmanagers/posixsignal"
@@ -14,7 +13,6 @@ import (
 	"github.com/matematik7/dichess/go/hardware"
 	"github.com/matematik7/dichess/go/voice"
 	"github.com/matematik7/dichess/go/wpa"
-	texttospeechpb "google.golang.org/genproto/googleapis/cloud/texttospeech/v1"
 )
 
 var noHardware = flag.Bool("no_hardware", false, "disable hardware init and use fake")
@@ -26,45 +24,20 @@ func main() {
 	defer cancel()
 
 	flag.Parse()
-	observers := &chess_state.Observers{}
-	observers.Add(&chess_state.LoggingObserver{})
 
 	hw := hardware.New()
 	if !*noHardware {
 		if err := hw.Initialize(); err != nil {
 			log.Fatal(err)
 		}
-		observers.Add(hw)
+	} else {
+		hw = nil
 	}
-
-	// for {
-	//     data, err := hw.Matrix.Read()
-	//     if err != nil {
-	//         log.Fatal(err)
-	//     }
-	//     for i := range data {
-	//         line := ""
-	//         for j := range data[i] {
-	//             line += chess_state.Square(i, j).String()
-	//             line += " "
-	//             if data[i][j] {
-	//                 line += "+"
-	//             } else {
-	//                 line += "-"
-	//             }
-	//             line += " "
-	//         }
-	//         log.Println(line)
-	//     }
-	//     log.Println("done")
-	//     time.Sleep(time.Second)
-	// }
 
 	voice, err := voice.New(ctx)
 	if err != nil {
 		log.Printf("Couldn't init voice: %v", err)
-	} else {
-		observers.Add(voice)
+		voice = nil
 	}
 
 	wpa, err := wpa.InitWpa()
@@ -73,9 +46,8 @@ func main() {
 	}
 
 	server := &bluetooth.Server{
-		Channel:   btChannel,
-		Observers: observers,
-		Wpa:       wpa,
+		Channel: btChannel,
+		Wpa:     wpa,
 	}
 
 	gs := gracefulshutdown.New()
@@ -99,76 +71,19 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// go func() {
-	//     if err := newGame(observers, hw, voice); err != nil {
-	//         log.Println(err)
-	//     }
-	// }()
+	controller := &chess_state.Controller{
+		HardwareInput: hw,
+		VoiceInput:    voice,
+
+		HardwareObserver: hw,
+		VoiceObserver:    voice,
+
+		HardwareGameStarter: hw,
+		VoiceGameStarter:    voice,
+	}
+	if err := controller.Start(); err != nil {
+		log.Fatal(err)
+	}
 
 	log.Fatal(server.Serve())
-}
-
-func newGame(observers *chess_state.Observers, hw *hardware.Hardware, voice *voice.Voice) error {
-	player2, err := chess_state.NewUciPlayer()
-	if err != nil {
-		return err
-	}
-	player1 := &chess_state.HumanPlayer{
-		Inputs: []chess_state.HumanInput{
-			hw,
-			voice,
-		},
-	}
-	game := chess_state.NewGame(player1, player2, observers)
-	go func() {
-		for {
-			time.Sleep(time.Second)
-			data, err := hw.ReadMatrix()
-			log.Println(data)
-			if err != nil {
-				log.Fatal(err)
-			}
-			done := true
-			for i := 0; i < 8; i++ {
-				for j := 0; j < 2; j++ {
-					if !data[i][j] {
-						log.Printf("Missing (%v, %v)", i, j)
-						done = false
-					}
-				}
-			}
-			for i := 0; i < 8; i++ {
-				for j := 6; j < 8; j++ {
-					if i == 0 && j == 6 {
-						continue
-					}
-					if i == 2 && j == 6 {
-						continue
-					}
-					if !data[i][j] {
-						log.Printf("Missing (%v, %v)", i, j)
-						done = false
-					}
-				}
-			}
-			if done {
-				break
-			}
-		}
-		log.Println("Ready")
-		time.Sleep(time.Second)
-		if err := voice.Say("What happens now?", texttospeechpb.SsmlVoiceGender_FEMALE); err != nil {
-			log.Println(err)
-		}
-		time.Sleep(time.Second)
-		if err := voice.Say("Well, white moves first, and then, we play.", texttospeechpb.SsmlVoiceGender_MALE); err != nil {
-			log.Println(err)
-		}
-		time.Sleep(time.Second)
-		if err := game.Play(); err != nil {
-			log.Println(err)
-		}
-	}()
-
-	return nil
 }

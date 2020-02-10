@@ -1,6 +1,8 @@
 package chess_state
 
 import (
+	"log"
+
 	"github.com/notnil/chess"
 )
 
@@ -15,26 +17,34 @@ type Move struct {
 }
 
 type Game struct {
-	game      *chess.Game
+	Observers *Observers
+	Game      *chess.Game
 	current   int
 	players   []Player
-	observers *Observers
 }
 
-func NewGame(player1, player2 Player, observers *Observers) *Game {
+func NewGame(player1, player2 Player, Observers *Observers) *Game {
 	return &Game{
-		game:      chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation{})),
-		observers: observers,
+		Game:      chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation{})),
+		Observers: Observers,
 		players:   []Player{player1, player2},
 	}
 }
 
 func (g *Game) Play() error {
-	var move *Move
-	for g.game.Outcome() == chess.NoOutcome {
-		g.observers.Update(g.game, move)
+	defer func() {
+		for _, player := range g.players {
+			if err := player.Close(); err != nil {
+				log.Printf("Could not close player: %v", err)
+			}
+		}
+	}()
 
-		newMove, err := g.players[g.current].MakeMove(g.game)
+	var move *Move
+	for g.Game.Outcome() == chess.NoOutcome {
+		g.Observers.Update(g, move)
+
+		newMove, err := g.players[g.current].MakeMove(g.Game)
 		if err != nil {
 			return err
 		}
@@ -47,12 +57,6 @@ func (g *Game) Play() error {
 	}
 
 	// handle outcome
-
-	for _, player := range g.players {
-		if err := player.Close(); err != nil {
-			return err
-		}
-	}
 
 	return nil
 }

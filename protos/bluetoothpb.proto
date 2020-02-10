@@ -1,6 +1,36 @@
 syntax = "proto3";
 package bluetoothpb;
 
+message Settings {
+	bool sound = 1;
+	enum Language {
+		ENGLISH = 0;
+		SLOVENIAN = 1;
+	}
+	Language language = 2;
+	bool voice_recognition = 3;
+	bool auto_move = 4;
+	bool random_bw = 5;
+
+	enum PlayerType {
+		HUMAN = 0;
+		COMPUTER = 1;
+	}
+	PlayerType player1 = 6;
+	PlayerType player2 = 7;
+
+	message ComputerSettings {
+		int32 time_limit_ms = 1;
+		// from 0 to 20
+		int32 skill_level = 2;
+		// enables elo over skill level
+		bool limit_strength = 3;
+		// from 1350 to 2850
+		int32 elo = 4;
+	}
+	ComputerSettings computerSettings = 8;
+}
+
 message Response {
 	message ChessBoard {
 		string fen = 1;
@@ -17,6 +47,12 @@ message Response {
 	}
 	repeated WifiNetwork networks = 2;
 
+	Settings settings = 3;
+
+	bool gameInProgress = 4;
+	repeated string moves = 5;
+	bool whiteTurn = 6;
+	string state = 7;
 }
 message Request {
 	enum Type {
@@ -27,9 +63,18 @@ message Request {
 		CONFIGURE_WIFI = 3;
 		FORGET_WIFI = 4;
 		CONNECT_WIFI = 5;
+
+		UPDATE_SETTINGS = 6;
+
+		UNDO_MOVE = 7;
+		MOVE = 8;
 	}
 	Type type = 1;
 
 	string wifi_ssid = 2;
 	string wifi_psk = 3;
+
+	Settings settings = 4;
+
+	string move = 5;
 }
