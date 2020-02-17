@@ -50,22 +50,17 @@ const Settings_PlayerType$json = const {
 const Response$json = const {
   '1': 'Response',
   '2': const [
-    const {'1': 'chess_board', '3': 1, '4': 1, '5': 11, '6': '.bluetoothpb.Response.ChessBoard', '10': 'chessBoard'},
+    const {'1': 'type', '3': 1, '4': 1, '5': 14, '6': '.bluetoothpb.Response.Type', '10': 'type'},
     const {'1': 'networks', '3': 2, '4': 3, '5': 11, '6': '.bluetoothpb.Response.WifiNetwork', '10': 'networks'},
     const {'1': 'settings', '3': 3, '4': 1, '5': 11, '6': '.bluetoothpb.Settings', '10': 'settings'},
     const {'1': 'gameInProgress', '3': 4, '4': 1, '5': 8, '10': 'gameInProgress'},
     const {'1': 'moves', '3': 5, '4': 3, '5': 9, '10': 'moves'},
     const {'1': 'whiteTurn', '3': 6, '4': 1, '5': 8, '10': 'whiteTurn'},
     const {'1': 'state', '3': 7, '4': 1, '5': 9, '10': 'state'},
+    const {'1': 'chess_board', '3': 8, '4': 1, '5': 11, '6': '.bluetoothpb.Response.ChessBoard', '10': 'chessBoard'},
   ],
-  '3': const [Response_ChessBoard$json, Response_WifiNetwork$json],
-};
-
-const Response_ChessBoard$json = const {
-  '1': 'ChessBoard',
-  '2': const [
-    const {'1': 'fen', '3': 1, '4': 1, '5': 9, '10': 'fen'},
-  ],
+  '3': const [Response_WifiNetwork$json, Response_ChessBoard$json],
+  '4': const [Response_Type$json],
 };
 
 const Response_WifiNetwork$json = const {
@@ -77,6 +72,22 @@ const Response_WifiNetwork$json = const {
     const {'1': 'saved', '3': 4, '4': 1, '5': 8, '10': 'saved'},
     const {'1': 'connecting', '3': 5, '4': 1, '5': 8, '10': 'connecting'},
     const {'1': 'failed', '3': 6, '4': 1, '5': 8, '10': 'failed'},
+  ],
+};
+
+const Response_ChessBoard$json = const {
+  '1': 'ChessBoard',
+  '2': const [
+    const {'1': 'fen', '3': 1, '4': 1, '5': 9, '10': 'fen'},
+  ],
+};
+
+const Response_Type$json = const {
+  '1': 'Type',
+  '2': const [
+    const {'1': 'NOOP', '2': 0},
+    const {'1': 'GAME_UPDATE', '2': 1},
+    const {'1': 'WIFI_UPDATE', '2': 2},
   ],
 };
 

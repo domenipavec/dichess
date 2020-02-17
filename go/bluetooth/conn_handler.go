@@ -26,11 +26,14 @@ func (h *connHandler) Update(game *chess_state.Game, move *chess_state.Move) err
 
 func (h *connHandler) sendUpdate(game *chess_state.Game, move *chess_state.Move, settings *bluetoothpb.Settings) error {
 	msg := &bluetoothpb.Response{
+		Type:           bluetoothpb.Response_GAME_UPDATE,
 		GameInProgress: game != nil,
 		Settings:       settings,
-		ChessBoard: &bluetoothpb.Response_ChessBoard{
+	}
+	if game != nil {
+		msg.ChessBoard = &bluetoothpb.Response_ChessBoard{
 			Fen: game.Game.FEN(),
-		},
+		}
 	}
 
 	return writeProto(h.conn, msg)
@@ -130,6 +133,12 @@ func (h *connHandler) handleRequest(request *bluetoothpb.Request) error {
 			close(h.wifiSenderStop)
 			h.wifiSenderStop = nil
 		}
+
+	case bluetoothpb.Request_UPDATE_SETTINGS:
+		h.server.Controller.SetSettings(request.GetSettings())
+		if err := h.sendUpdate(h.server.Controller.GetGame(), nil, h.server.Controller.GetSettings()); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -218,6 +227,7 @@ func (h *connHandler) sendWifiInfo() error {
 	})
 
 	response := &bluetoothpb.Response{
+		Type:     bluetoothpb.Response_WIFI_UPDATE,
 		Networks: networksList,
 	}
 

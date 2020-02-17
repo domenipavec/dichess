@@ -177,37 +177,6 @@ class Settings extends $pb.GeneratedMessage {
   Settings_ComputerSettings ensureComputerSettings() => $_ensure(7);
 }
 
-class Response_ChessBoard extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Response.ChessBoard', package: const $pb.PackageName('bluetoothpb'), createEmptyInstance: create)
-    ..aOS(1, 'fen')
-    ..hasRequiredFields = false
-  ;
-
-  Response_ChessBoard._() : super();
-  factory Response_ChessBoard() => create();
-  factory Response_ChessBoard.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory Response_ChessBoard.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
-  Response_ChessBoard clone() => Response_ChessBoard()..mergeFromMessage(this);
-  Response_ChessBoard copyWith(void Function(Response_ChessBoard) updates) => super.copyWith((message) => updates(message as Response_ChessBoard));
-  $pb.BuilderInfo get info_ => _i;
-  @$core.pragma('dart2js:noInline')
-  static Response_ChessBoard create() => Response_ChessBoard._();
-  Response_ChessBoard createEmptyInstance() => create();
-  static $pb.PbList<Response_ChessBoard> createRepeated() => $pb.PbList<Response_ChessBoard>();
-  @$core.pragma('dart2js:noInline')
-  static Response_ChessBoard getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Response_ChessBoard>(create);
-  static Response_ChessBoard _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.String get fen => $_getSZ(0);
-  @$pb.TagNumber(1)
-  set fen($core.String v) { $_setString(0, v); }
-  @$pb.TagNumber(1)
-  $core.bool hasFen() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearFen() => clearField(1);
-}
-
 class Response_WifiNetwork extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo('Response.WifiNetwork', package: const $pb.PackageName('bluetoothpb'), createEmptyInstance: create)
     ..aOS(1, 'ssid')
@@ -289,15 +258,47 @@ class Response_WifiNetwork extends $pb.GeneratedMessage {
   void clearFailed() => clearField(6);
 }
 
+class Response_ChessBoard extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Response.ChessBoard', package: const $pb.PackageName('bluetoothpb'), createEmptyInstance: create)
+    ..aOS(1, 'fen')
+    ..hasRequiredFields = false
+  ;
+
+  Response_ChessBoard._() : super();
+  factory Response_ChessBoard() => create();
+  factory Response_ChessBoard.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory Response_ChessBoard.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  Response_ChessBoard clone() => Response_ChessBoard()..mergeFromMessage(this);
+  Response_ChessBoard copyWith(void Function(Response_ChessBoard) updates) => super.copyWith((message) => updates(message as Response_ChessBoard));
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static Response_ChessBoard create() => Response_ChessBoard._();
+  Response_ChessBoard createEmptyInstance() => create();
+  static $pb.PbList<Response_ChessBoard> createRepeated() => $pb.PbList<Response_ChessBoard>();
+  @$core.pragma('dart2js:noInline')
+  static Response_ChessBoard getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Response_ChessBoard>(create);
+  static Response_ChessBoard _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get fen => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set fen($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasFen() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearFen() => clearField(1);
+}
+
 class Response extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo('Response', package: const $pb.PackageName('bluetoothpb'), createEmptyInstance: create)
-    ..aOM<Response_ChessBoard>(1, 'chessBoard', subBuilder: Response_ChessBoard.create)
+    ..e<Response_Type>(1, 'type', $pb.PbFieldType.OE, defaultOrMaker: Response_Type.NOOP, valueOf: Response_Type.valueOf, enumValues: Response_Type.values)
     ..pc<Response_WifiNetwork>(2, 'networks', $pb.PbFieldType.PM, subBuilder: Response_WifiNetwork.create)
     ..aOM<Settings>(3, 'settings', subBuilder: Settings.create)
     ..aOB(4, 'gameInProgress', protoName: 'gameInProgress')
     ..pPS(5, 'moves')
     ..aOB(6, 'whiteTurn', protoName: 'whiteTurn')
     ..aOS(7, 'state')
+    ..aOM<Response_ChessBoard>(8, 'chessBoard', subBuilder: Response_ChessBoard.create)
     ..hasRequiredFields = false
   ;
 
@@ -317,15 +318,13 @@ class Response extends $pb.GeneratedMessage {
   static Response _defaultInstance;
 
   @$pb.TagNumber(1)
-  Response_ChessBoard get chessBoard => $_getN(0);
+  Response_Type get type => $_getN(0);
   @$pb.TagNumber(1)
-  set chessBoard(Response_ChessBoard v) { setField(1, v); }
+  set type(Response_Type v) { setField(1, v); }
   @$pb.TagNumber(1)
-  $core.bool hasChessBoard() => $_has(0);
+  $core.bool hasType() => $_has(0);
   @$pb.TagNumber(1)
-  void clearChessBoard() => clearField(1);
-  @$pb.TagNumber(1)
-  Response_ChessBoard ensureChessBoard() => $_ensure(0);
+  void clearType() => clearField(1);
 
   @$pb.TagNumber(2)
   $core.List<Response_WifiNetwork> get networks => $_getList(1);
@@ -370,6 +369,17 @@ class Response extends $pb.GeneratedMessage {
   $core.bool hasState() => $_has(6);
   @$pb.TagNumber(7)
   void clearState() => clearField(7);
+
+  @$pb.TagNumber(8)
+  Response_ChessBoard get chessBoard => $_getN(7);
+  @$pb.TagNumber(8)
+  set chessBoard(Response_ChessBoard v) { setField(8, v); }
+  @$pb.TagNumber(8)
+  $core.bool hasChessBoard() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearChessBoard() => clearField(8);
+  @$pb.TagNumber(8)
+  Response_ChessBoard ensureChessBoard() => $_ensure(7);
 }
 
 class Request extends $pb.GeneratedMessage {

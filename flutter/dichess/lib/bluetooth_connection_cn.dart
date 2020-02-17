@@ -15,6 +15,8 @@ class BluetoothConnectionCN extends ChangeNotifier {
 
   bool isConnecting = true;
   Response latestResponse = Response();
+  List<Response_WifiNetwork> networks = [];
+
 
   BluetoothConnectionCN(this._bluetoothStateCN) : super() {
 
@@ -24,7 +26,15 @@ class BluetoothConnectionCN extends ChangeNotifier {
       notifyListeners();
 
       var _streamSubscrition = connection.input.transform(StreamTransformer.fromBind(lengthDecoder)).listen((r) {
-        latestResponse = Response.fromBuffer(r);
+        var response = Response.fromBuffer(r);
+        switch (response.type) {
+          case Response_Type.WIFI_UPDATE:
+            networks = response.networks;
+            break;
+          case Response_Type.GAME_UPDATE:
+            latestResponse = response;
+            break;
+        }
         notifyListeners();
 
 //        if (response.hasChessBoard()) {
@@ -93,6 +103,13 @@ class BluetoothConnectionCN extends ChangeNotifier {
     request.type = Request_Type.CONFIGURE_WIFI;
     request.wifiSsid = ssid;
     request.wifiPsk = psk;
+    _send(request);
+  }
+
+  void updateSettings(void Function(Settings) update) {
+    var request = Request();
+    request.type = Request_Type.UPDATE_SETTINGS;
+    request.settings = latestResponse.settings.copyWith(update);
     _send(request);
   }
 }

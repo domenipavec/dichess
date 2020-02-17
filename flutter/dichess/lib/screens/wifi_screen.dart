@@ -79,9 +79,9 @@ class WifiScreen extends StatelessWidget {
             },
             child: ListView.builder(
               physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: bluetoothConnectionCN.latestResponse.networks.length,
+              itemCount: bluetoothConnectionCN.networks.length,
               itemBuilder: (context, index) {
-                var network = bluetoothConnectionCN.latestResponse.networks[index];
+                var network = bluetoothConnectionCN.networks[index];
 
                 Widget leading = null;
                 if (network.connected) {

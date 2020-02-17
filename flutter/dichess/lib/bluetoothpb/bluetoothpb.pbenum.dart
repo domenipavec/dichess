@@ -39,6 +39,23 @@ class Settings_PlayerType extends $pb.ProtobufEnum {
   const Settings_PlayerType._($core.int v, $core.String n) : super(v, n);
 }
 
+class Response_Type extends $pb.ProtobufEnum {
+  static const Response_Type NOOP = Response_Type._(0, 'NOOP');
+  static const Response_Type GAME_UPDATE = Response_Type._(1, 'GAME_UPDATE');
+  static const Response_Type WIFI_UPDATE = Response_Type._(2, 'WIFI_UPDATE');
+
+  static const $core.List<Response_Type> values = <Response_Type> [
+    NOOP,
+    GAME_UPDATE,
+    WIFI_UPDATE,
+  ];
+
+  static final $core.Map<$core.int, Response_Type> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static Response_Type valueOf($core.int value) => _byValue[value];
+
+  const Response_Type._($core.int v, $core.String n) : super(v, n);
+}
+
 class Request_Type extends $pb.ProtobufEnum {
   static const Request_Type NOOP = Request_Type._(0, 'NOOP');
   static const Request_Type START_WIFI_SCAN = Request_Type._(1, 'START_WIFI_SCAN');

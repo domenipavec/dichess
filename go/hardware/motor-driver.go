@@ -93,11 +93,11 @@ func (d *MotorDriver) Go(dest int16) error {
 	return d.Wait()
 }
 
-type Coil struct {
+type RealCoil struct {
 	*MotorDriver
 }
 
-func (c *Coil) Initialize() error {
+func (c *RealCoil) Initialize() error {
 	if err := c.SetPin(PinOutput); err != nil {
 		return errors.Wrap(err, "couldn't set pin 1 as output")
 	}
@@ -120,19 +120,19 @@ func (c *Coil) Initialize() error {
 	return nil
 }
 
-func (c *Coil) On() error {
+func (c *RealCoil) On() error {
 	return errors.Wrap(c.SetPin(PinOutput|PinHigh), "couldn't turn coil on")
 }
 
-func (c *Coil) Off() error {
+func (c *RealCoil) Off() error {
 	return errors.Wrap(c.SetPin(PinOutput), "couldn't turn coil on")
 }
 
-func (c *Coil) Rotate(degrees int) error {
+func (c *RealCoil) Rotate(degrees int) error {
 	return errors.Wrap(c.Go(int16(degrees)*950/90+950), "couldn't rotate coil")
 }
 
-type Axis struct {
+type RealAxis struct {
 	*MotorDriver
 
 	MinusOffset int
@@ -141,8 +141,8 @@ type Axis struct {
 	LastOffset  int
 }
 
-func (a *Axis) Initialize() error {
-	// Axis are running old code, otherwise these should be inverted
+func (a *RealAxis) Initialize() error {
+	// RealAxis are running old code, otherwise these should be inverted
 	if err := a.SetPin(PinPullUp | PinEnabled | PinHome); err != nil {
 		return errors.Wrap(err, "couldn't set pin 1 flags")
 	}
@@ -152,7 +152,7 @@ func (a *Axis) Initialize() error {
 	return a.Home()
 }
 
-func (a *Axis) Home() error {
+func (a *RealAxis) Home() error {
 	if err := a.SetCurrent(50); err != nil {
 		return errors.Wrap(err, "couldn't set moving current")
 	}
@@ -182,7 +182,7 @@ func (a *Axis) Home() error {
 	return nil
 }
 
-func (a *Axis) getDest(id float64) int {
+func (a *RealAxis) getDest(id float64) int {
 	if id < -1 {
 		return a.MinusOffset
 	}
@@ -198,7 +198,7 @@ func (a *Axis) getDest(id float64) int {
 	return a.MinusOffset + a.FirstOffset + 7*a.EveryOffset + a.LastOffset
 }
 
-func (a *Axis) GoTo(id float64, speed uint8) error {
+func (a *RealAxis) GoTo(id float64, speed uint8) error {
 	if err := a.SetSpeed(speed); err != nil {
 		return errors.Wrap(err, "couldn't set moving speed")
 	}

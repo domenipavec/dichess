@@ -51,10 +51,7 @@ func (s *Server) Handle(conn net.Conn) {
 	}()
 
 	handler := &connHandler{conn: conn, server: s}
-	game := s.Controller.GetGame()
-	if game != nil {
-		game.Observers.Add(handler)
-	}
+	s.Controller.Observers.Add(handler)
 
 	if err := handler.Handle(); err != nil {
 		log.Printf("Handler exited: %v", err)

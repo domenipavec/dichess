@@ -29,7 +29,7 @@ func loadSettings() (*bluetoothpb.Settings, error) {
 	data, err := ioutil.ReadFile("settings.proto")
 	if err != nil {
 		if strings.Contains(err.Error(), "no such file or directory") {
-			return s, nil
+			return s, saveSettings(s)
 		}
 		return nil, errors.Wrap(err, "could not read settings.proto")
 	}

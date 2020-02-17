@@ -10,13 +10,35 @@ import (
 	"periph.io/x/periph/host"
 )
 
+type Initializer interface {
+	Initialize() error
+}
+
+type Matrix interface {
+	Initializer
+	Read() ([][]bool, error)
+}
+
+type Axis interface {
+	Initializer
+	SetCurrent(uint8) error
+	GoTo(float64, uint8) error
+}
+
+type Coil interface {
+	Initializer
+	On() error
+	Off() error
+	Rotate(int) error
+}
+
 type Hardware struct {
 	initialized bool
 
-	matrix *ReedMatrix
-	xAxis  *Axis
-	yAxis  *Axis
-	coil   *Coil
+	matrix Matrix
+	xAxis  Axis
+	yAxis  Axis
+	coil   Coil
 
 	movedPieces []movedPiece
 }
@@ -28,35 +50,20 @@ type movedPiece struct {
 }
 
 func New() *Hardware {
-	return &Hardware{
-		matrix: &ReedMatrix{},
-		yAxis: &Axis{
-			MotorDriver: &MotorDriver{
-				Dev: &i2c.Dev{Addr: 21},
-			},
-			MinusOffset: 220,
-			FirstOffset: 0,
-			EveryOffset: 247,
-			LastOffset:  0,
-		},
-		xAxis: &Axis{
-			MotorDriver: &MotorDriver{
-				Dev: &i2c.Dev{Addr: 22},
-			},
-			MinusOffset: 250,
-			FirstOffset: 0,
-			EveryOffset: 247,
-			LastOffset:  0,
-		},
-		coil: &Coil{
-			MotorDriver: &MotorDriver{
-				Dev: &i2c.Dev{Addr: 23},
-			},
-		},
-	}
+	return &Hardware{}
 }
 
 func (h *Hardware) Initialize() error {
+	for _, initializer := range []Initializer{h.matrix, h.coil, h.yAxis, h.xAxis} {
+		if err := initializer.Initialize(); err != nil {
+			return err
+		}
+	}
+	h.initialized = true
+	return nil
+}
+
+func (h *Hardware) InitializeReal() error {
 	if _, err := host.Init(); err != nil {
 		return errors.Wrap(err, "couldn't initialize periph")
 	}
@@ -64,48 +71,61 @@ func (h *Hardware) Initialize() error {
 	if err != nil {
 		return errors.Wrap(err, "couldn't open i2c bus 1")
 	}
-	h.xAxis.MotorDriver.Dev.Bus = bus
-	h.yAxis.MotorDriver.Dev.Bus = bus
-	h.coil.MotorDriver.Dev.Bus = bus
-	h.matrix.Rows = []gpio.PinIn{
-		gpioreg.ByName("GPIO4"),
-		gpioreg.ByName("GPIO17"),
-		gpioreg.ByName("GPIO27"),
-		gpioreg.ByName("GPIO22"),
-		gpioreg.ByName("GPIO5"),
-		gpioreg.ByName("GPIO6"),
-		gpioreg.ByName("GPIO13"),
-		gpioreg.ByName("GPIO19"),
+	h.yAxis = &RealAxis{
+		MotorDriver: &MotorDriver{
+			Dev: &i2c.Dev{Addr: 21, Bus: bus},
+		},
+		MinusOffset: 220,
+		FirstOffset: 0,
+		EveryOffset: 247,
+		LastOffset:  0,
 	}
-	h.matrix.Columns = []gpio.PinIO{
-		gpioreg.ByName("GPIO21"),
-		gpioreg.ByName("GPIO20"),
-		gpioreg.ByName("GPIO16"),
-		gpioreg.ByName("GPIO12"),
-		gpioreg.ByName("GPIO25"),
-		gpioreg.ByName("GPIO24"),
-		gpioreg.ByName("GPIO23"),
-		gpioreg.ByName("GPIO18"),
+	h.xAxis = &RealAxis{
+		MotorDriver: &MotorDriver{
+			Dev: &i2c.Dev{Addr: 22, Bus: bus},
+		},
+		MinusOffset: 250,
+		FirstOffset: 0,
+		EveryOffset: 247,
+		LastOffset:  0,
 	}
-
-	// coil should be initialized first so it doesn't heat for nothing
-	if err := h.coil.Initialize(); err != nil {
-		return errors.Wrap(err, "couldn't initialize coil")
+	h.coil = &RealCoil{
+		MotorDriver: &MotorDriver{
+			Dev: &i2c.Dev{Addr: 23, Bus: bus},
+		},
 	}
 
-	if err := h.matrix.Initialize(); err != nil {
-		return errors.Wrap(err, "couldn't initialize reed matrix")
+	h.matrix = &ReedMatrix{
+		Rows: []gpio.PinIn{
+			gpioreg.ByName("GPIO4"),
+			gpioreg.ByName("GPIO17"),
+			gpioreg.ByName("GPIO27"),
+			gpioreg.ByName("GPIO22"),
+			gpioreg.ByName("GPIO5"),
+			gpioreg.ByName("GPIO6"),
+			gpioreg.ByName("GPIO13"),
+			gpioreg.ByName("GPIO19"),
+		},
+		Columns: []gpio.PinIO{
+			gpioreg.ByName("GPIO21"),
+			gpioreg.ByName("GPIO20"),
+			gpioreg.ByName("GPIO16"),
+			gpioreg.ByName("GPIO12"),
+			gpioreg.ByName("GPIO25"),
+			gpioreg.ByName("GPIO24"),
+			gpioreg.ByName("GPIO23"),
+			gpioreg.ByName("GPIO18"),
+		},
 	}
 
-	// Must home axis with addr 21 before addr 22
-	if err := h.yAxis.Initialize(); err != nil {
-		return errors.Wrap(err, "couldn't initialize y-axis")
-	}
-	if err := h.xAxis.Initialize(); err != nil {
-		return errors.Wrap(err, "couldn't initialize x-axis")
-	}
+	return h.Initialize()
+}
 
-	h.initialized = true
+func (h *Hardware) InitializeFake() error {
+	h.xAxis = &FakeAxis{}
+	h.yAxis = &FakeAxis{}
+	h.coil = &FakeCoil{}
+	h.matrix = &FakeMatrix{}
 
-	return nil
+	return h.Initialize()
 }

@@ -18,11 +18,10 @@ type Controller struct {
 	HardwareInput HumanInput
 	VoiceInput    HumanInput
 
-	HardwareObserver Observer
-	VoiceObserver    Observer
-
 	HardwareGameStarter GameStarter
 	VoiceGameStarter    GameStarter
+
+	Observers *Observers
 
 	settingsMutex sync.Mutex
 	settings      *bluetoothpb.Settings
@@ -103,9 +102,6 @@ func (c *Controller) StartGame() error {
 
 	settings := c.GetSettings()
 
-	observers := &Observers{}
-	observers.Add(&LoggingObserver{})
-
 	player1, err := c.createPlayer(settings, settings.Player1)
 	if err != nil {
 		return errors.Wrap(err, "could not create player 1")
@@ -119,25 +115,25 @@ func (c *Controller) StartGame() error {
 		player1, player2 = player2, player1
 	}
 
-	if settings.AutoMove && c.HardwareObserver != nil {
-		observers.Add(c.HardwareObserver)
-	}
-	if settings.Sound && c.VoiceObserver != nil {
-		observers.Add(c.VoiceObserver)
-	}
+	// if settings.AutoMove && c.HardwareObserver != nil {
+	//     observers.Add(c.HardwareObserver)
+	// }
+	// if settings.Sound && c.VoiceObserver != nil {
+	//     observers.Add(c.VoiceObserver)
+	// }
 
 	if err := c.HardwareGameStarter.StartGame(); err != nil {
 		return err
 	}
-	if settings.Sound {
+	if c.VoiceGameStarter != nil && settings.Sound {
 		if err := c.VoiceGameStarter.StartGame(); err != nil {
 			return err
 		}
 	}
 
-	game := NewGame(player1, player2, observers)
+	c.game = NewGame(player1, player2, c.Observers)
 	go func() {
-		if err := game.Play(); err != nil {
+		if err := c.game.Play(); err != nil {
 			log.Println(err)
 		}
 	}()

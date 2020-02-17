@@ -32,10 +32,12 @@ message Settings {
 }
 
 message Response {
-	message ChessBoard {
-		string fen = 1;
+	enum Type {
+		NOOP = 0;
+		GAME_UPDATE = 1;
+		WIFI_UPDATE = 2;
 	}
-	ChessBoard chess_board = 1;
+	Type type = 1;
 
 	message WifiNetwork {
 		string ssid = 1;
@@ -53,6 +55,11 @@ message Response {
 	repeated string moves = 5;
 	bool whiteTurn = 6;
 	string state = 7;
+
+	message ChessBoard {
+		string fen = 1;
+	}
+	ChessBoard chess_board = 8;
 }
 message Request {
 	enum Type {

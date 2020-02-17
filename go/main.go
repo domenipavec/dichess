@@ -26,18 +26,26 @@ func main() {
 	flag.Parse()
 
 	hw := hardware.New()
-	if !*noHardware {
-		if err := hw.Initialize(); err != nil {
+	if *noHardware {
+		if err := hw.InitializeFake(); err != nil {
 			log.Fatal(err)
 		}
 	} else {
-		hw = nil
+		if err := hw.InitializeReal(); err != nil {
+			log.Fatal(err)
+		}
 	}
+
+	observers := &chess_state.Observers{}
+	observers.Add(&chess_state.LoggingObserver{})
+	observers.Add(hw)
 
 	voice, err := voice.New(ctx)
 	if err != nil {
 		log.Printf("Couldn't init voice: %v", err)
 		voice = nil
+	} else {
+		observers.Add(voice)
 	}
 
 	wpa, err := wpa.InitWpa()
@@ -45,9 +53,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	controller := &chess_state.Controller{Observers: observers}
 	server := &bluetooth.Server{
-		Channel: btChannel,
-		Wpa:     wpa,
+		Controller: controller,
+		Channel:    btChannel,
+		Wpa:        wpa,
 	}
 
 	gs := gracefulshutdown.New()
@@ -71,15 +81,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	controller := &chess_state.Controller{
-		HardwareInput: hw,
-		VoiceInput:    voice,
-
-		HardwareObserver: hw,
-		VoiceObserver:    voice,
-
-		HardwareGameStarter: hw,
-		VoiceGameStarter:    voice,
+	if hw != nil {
+		controller.HardwareGameStarter = hw
+		controller.HardwareInput = hw
+	}
+	if voice != nil {
+		controller.VoiceInput = voice
+		controller.VoiceGameStarter = voice
 	}
 	if err := controller.Start(); err != nil {
 		log.Fatal(err)
