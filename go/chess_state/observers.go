@@ -7,7 +7,7 @@ import (
 
 // Observer should use game.Game as read only
 type Observer interface {
-	Update(*Game, *Move) error
+	Update(StateSender, *Game, *Move) error
 }
 
 type Observers struct {
@@ -15,42 +15,49 @@ type Observers struct {
 	mutex     sync.Mutex
 }
 
-func (o *Observers) Add(observer Observer) {
+func (o *Observers) Add(observer Observer) int {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
 
 	o.observers = append(o.observers, observer)
+	return len(o.observers) - 1
 }
 
-// Update calls update on all observers, removing observers that return error.
-func (o *Observers) Update(game *Game, move *Move) {
+func (o *Observers) Remove(id int) {
+	o.observers[id] = nil
+}
+
+// Update calls update on all observers
+func (o *Observers) Update(stateSender StateSender, game *Game, move *Move) {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
 
 	errChan := make(chan error)
 	for _, observer := range o.observers {
+		if observer == nil {
+			continue
+		}
 		observer := observer
 		go func() {
-			errChan <- observer.Update(game, move)
+			errChan <- observer.Update(stateSender, game, move)
 		}()
 	}
 
-	// i := 0
-	for range o.observers {
+	for _, observer := range o.observers {
+		if observer == nil {
+			continue
+		}
+
 		if err := <-errChan; err != nil {
 			log.Println(err)
 			continue
 		}
-		// TODO: figure out if we need to remove observer on error
-		// o.observers[i] = observer
-		// i++
 	}
-	// o.observers = o.observers[:i]
 }
 
 type LoggingObserver struct{}
 
-func (o *LoggingObserver) Update(game *Game, move *Move) error {
+func (o *LoggingObserver) Update(_ StateSender, game *Game, move *Move) error {
 	log.Println(game.Game.Position().Board().Draw())
 	return nil
 }

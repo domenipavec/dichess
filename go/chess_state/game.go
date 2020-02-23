@@ -7,7 +7,7 @@ import (
 )
 
 type Player interface {
-	MakeMove(*chess.Game) (*Move, error)
+	MakeMove(StateSender, *chess.Game) (*Move, error)
 	Close() error
 }
 
@@ -17,17 +17,19 @@ type Move struct {
 }
 
 type Game struct {
-	Observers *Observers
-	Game      *chess.Game
-	current   int
-	players   []Player
+	Observers    *Observers
+	StateSenders *StateSenders
+	Game         *chess.Game
+	current      int
+	players      []Player
 }
 
-func NewGame(player1, player2 Player, Observers *Observers) *Game {
+func NewGame(player1, player2 Player, Observers *Observers, StateSenders *StateSenders) *Game {
 	return &Game{
-		Game:      chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation{})),
-		Observers: Observers,
-		players:   []Player{player1, player2},
+		Game:         chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation{})),
+		Observers:    Observers,
+		StateSenders: StateSenders,
+		players:      []Player{player1, player2},
 	}
 }
 
@@ -42,9 +44,9 @@ func (g *Game) Play() error {
 
 	var move *Move
 	for g.Game.Outcome() == chess.NoOutcome {
-		g.Observers.Update(g, move)
+		g.Observers.Update(g.StateSenders, g, move)
 
-		newMove, err := g.players[g.current].MakeMove(g.Game)
+		newMove, err := g.players[g.current].MakeMove(g.StateSenders, g.Game)
 		if err != nil {
 			return err
 		}

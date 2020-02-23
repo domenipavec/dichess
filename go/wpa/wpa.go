@@ -24,7 +24,6 @@ func (w *Wpa) startConnection() error {
 
 	stop := make(chan bool)
 	go func() {
-		defer log.Printf("Wpa event queue stopped")
 		for {
 			select {
 			case <-stop:

@@ -15,7 +15,7 @@ import (
 	texttospeechpb "google.golang.org/genproto/googleapis/cloud/texttospeech/v1"
 )
 
-func (v *Voice) Update(game *chess_state.Game, move *chess_state.Move) error {
+func (v *Voice) Update(stateSender chess_state.StateSender, game *chess_state.Game, move *chess_state.Move) error {
 	if len(game.Game.Moves()) < 1 {
 		return nil
 	}
@@ -45,7 +45,9 @@ func (v *Voice) Update(game *chess_state.Game, move *chess_state.Move) error {
 	return nil
 }
 
-func (v *Voice) StartGame() error {
+func (v *Voice) StartGame(stateSender chess_state.StateSender) error {
+	stateSender.StateSend("Game starting.")
+
 	time.Sleep(time.Second)
 	if err := v.Say("What happens now?", texttospeechpb.SsmlVoiceGender_FEMALE); err != nil {
 		return err

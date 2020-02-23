@@ -3,6 +3,7 @@ package hardware
 import (
 	"log"
 	"math"
+	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/matematik7/dichess/go/chess_state"
@@ -121,7 +122,11 @@ func (h *Hardware) move(x1, y1, x2, y2 float64, color chess.Color, rotate bool) 
 	return nil
 }
 
-func (h *Hardware) Update(game *chess_state.Game, move *chess_state.Move) error {
+func (h *Hardware) Update(stateSender chess_state.StateSender, game *chess_state.Game, move *chess_state.Move) error {
+	stateSender.StateSend("Moving pieces.")
+	if h.fake {
+		return nil
+	}
 	if move == nil || !move.ShouldMove {
 		return nil
 	}
@@ -141,6 +146,7 @@ func (h *Hardware) Update(game *chess_state.Game, move *chess_state.Move) error 
 			if data[gameMove.S2().File()][gameMove.S2().Rank()] {
 				break
 			}
+			time.Sleep(time.Millisecond * 100)
 		}
 		return nil
 	}

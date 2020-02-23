@@ -3,3 +3,5 @@ bin
 *.json
 chessboard
 *.proto
+go
+*.pprof

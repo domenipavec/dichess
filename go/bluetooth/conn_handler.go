@@ -6,21 +6,24 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/matematik7/dichess/go/bluetoothpb"
 	"github.com/matematik7/dichess/go/chess_state"
 	"github.com/pkg/errors"
 )
 
 type connHandler struct {
+	mutex  sync.Mutex
 	conn   net.Conn
 	server *Server
 
 	wifiSenderStop chan struct{}
 }
 
-func (h *connHandler) Update(game *chess_state.Game, move *chess_state.Move) error {
+func (h *connHandler) Update(_ chess_state.StateSender, game *chess_state.Game, move *chess_state.Move) error {
 	return h.sendUpdate(game, move, nil)
 }
 
@@ -36,6 +39,22 @@ func (h *connHandler) sendUpdate(game *chess_state.Game, move *chess_state.Move,
 		}
 	}
 
+	return h.send(msg)
+}
+
+func (h *connHandler) StateSend(state string) {
+	msg := &bluetoothpb.Response{
+		Type:  bluetoothpb.Response_STATE_UPDATE,
+		State: state,
+	}
+	if err := h.send(msg); err != nil {
+		log.Printf("Could not send state: %v", err)
+	}
+}
+
+func (h *connHandler) send(msg proto.Message) error {
+	h.mutex.Lock()
+	defer h.mutex.Unlock()
 	return writeProto(h.conn, msg)
 }
 
@@ -43,6 +62,7 @@ func (h *connHandler) Handle() error {
 	if err := h.sendUpdate(h.server.Controller.GetGame(), nil, h.server.Controller.GetSettings()); err != nil {
 		return err
 	}
+	h.StateSend(h.server.Controller.StateSenders.GetLastState())
 	for {
 		request := &bluetoothpb.Request{}
 		if err := readProto(h.conn, request); err != nil {

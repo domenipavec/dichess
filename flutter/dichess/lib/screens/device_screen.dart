@@ -6,26 +6,7 @@ import 'package:provider/provider.dart';
 import '../bluetooth_connection_cn.dart';
 import '../bluetoothpb/bluetoothpb.pb.dart';
 
-class DeviceScreen extends StatefulWidget {
-  @override
-  _DeviceState createState() => _DeviceState();
-}
-
-class _DeviceState extends State<DeviceScreen> {
-  ChessBoardController _chessController;
-  ChessBoard _chessBoard;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _chessController = ChessBoardController();
-    _chessBoard = ChessBoard(
-      enableUserMoves: false,
-      chessBoardController: _chessController,
-    );
-  }
-
+class DeviceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +32,14 @@ class _DeviceState extends State<DeviceScreen> {
         }
         Widget body;
         if (bluetoothConnectionCN.latestResponse.gameInProgress) {
-          body = _chessBoard;
+          body = Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Center(child: bluetoothConnectionCN.chessBoard),
+              Text(bluetoothConnectionCN.state),
+            ],
+          );
         } else {
           var settings = bluetoothConnectionCN.latestResponse.settings;
           body = ListView(
@@ -130,6 +118,9 @@ class _DeviceState extends State<DeviceScreen> {
                     onSubmitted: (value) { bluetoothConnectionCN.updateSettings((settings) { settings.computerSettings.elo = int.parse(value); }); },
                   ),
                 ),
+              ),
+              ListTile(
+                title: Text(bluetoothConnectionCN.state),
               ),
             ],
           );

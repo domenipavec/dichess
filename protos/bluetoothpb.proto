@@ -36,6 +36,7 @@ message Response {
 		NOOP = 0;
 		GAME_UPDATE = 1;
 		WIFI_UPDATE = 2;
+		STATE_UPDATE = 3;
 	}
 	Type type = 1;
 

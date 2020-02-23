@@ -11,7 +11,7 @@ import (
 )
 
 type GameStarter interface {
-	StartGame() error
+	StartGame(StateSender) error
 }
 
 type Controller struct {
@@ -21,7 +21,8 @@ type Controller struct {
 	HardwareGameStarter GameStarter
 	VoiceGameStarter    GameStarter
 
-	Observers *Observers
+	Observers    *Observers
+	StateSenders *StateSenders
 
 	settingsMutex sync.Mutex
 	settings      *bluetoothpb.Settings
@@ -100,7 +101,17 @@ func (c *Controller) StartGame() error {
 		return errors.New("game in progress")
 	}
 
+	if err := c.HardwareGameStarter.StartGame(c.StateSenders); err != nil {
+		return err
+	}
+
 	settings := c.GetSettings()
+
+	if c.VoiceGameStarter != nil && settings.Sound {
+		if err := c.VoiceGameStarter.StartGame(c.StateSenders); err != nil {
+			return err
+		}
+	}
 
 	player1, err := c.createPlayer(settings, settings.Player1)
 	if err != nil {
@@ -122,16 +133,7 @@ func (c *Controller) StartGame() error {
 	//     observers.Add(c.VoiceObserver)
 	// }
 
-	if err := c.HardwareGameStarter.StartGame(); err != nil {
-		return err
-	}
-	if c.VoiceGameStarter != nil && settings.Sound {
-		if err := c.VoiceGameStarter.StartGame(); err != nil {
-			return err
-		}
-	}
-
-	c.game = NewGame(player1, player2, c.Observers)
+	c.game = NewGame(player1, player2, c.Observers, c.StateSenders)
 	go func() {
 		if err := c.game.Play(); err != nil {
 			log.Println(err)

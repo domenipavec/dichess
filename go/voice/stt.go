@@ -16,7 +16,7 @@ import (
 	speechpb "google.golang.org/genproto/googleapis/cloud/speech/v1"
 )
 
-func (v *Voice) MakeMove(ctx context.Context, game *chess.Game) (*chess_state.Move, error) {
+func (v *Voice) MakeMove(ctx context.Context, stateSender chess_state.StateSender, game *chess.Game) (*chess_state.Move, error) {
 	phrases := v.generatePhrases(game)
 	result, err := v.recognize(ctx, phrases)
 	if err != nil {
@@ -29,12 +29,12 @@ func (v *Voice) MakeMove(ctx context.Context, game *chess.Game) (*chess_state.Mo
 	}
 
 	if len(moves) < 1 {
-		log.Println("Invalid move in speech")
+		stateSender.StateSend(fmt.Sprintf("Could not recognize move from: %v", result))
 		return nil, nil
 	}
 	if len(moves) > 1 {
 		// TODO disambiguate
-		log.Println("Voice ambiguous move")
+		stateSender.StateSend(fmt.Sprintf("Multiple moves possible for: %v", result))
 		return nil, nil
 	}
 

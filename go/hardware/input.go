@@ -2,6 +2,7 @@ package hardware
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (h *Hardware) MakeMove(ctx context.Context, game *chess.Game) (*chess_state.Move, error) {
+func (h *Hardware) MakeMove(ctx context.Context, stateSender chess_state.StateSender, game *chess.Game) (*chess_state.Move, error) {
 	time.Sleep(time.Millisecond * 100)
 	initialData, err := h.matrix.Read()
 	if err != nil {
@@ -76,11 +77,11 @@ func (h *Hardware) MakeMove(ctx context.Context, game *chess.Game) (*chess_state
 		}
 
 		if len(validMoves) < 1 {
-			log.Printf("Invalid move from %v to %v", from, to)
+			stateSender.StateSend(fmt.Sprintf("Invalid move from %v to %v.", from, to))
 			continue
 		}
 		if len(validMoves) > 1 {
-			log.Printf("Ambiguous move from %v to %v: %v", from, to, validMoves)
+			stateSender.StateSend(fmt.Sprintf("Ambiguous move from %v to %v: %v", from, to, validMoves))
 			continue
 		}
 
@@ -95,8 +96,19 @@ func (h *Hardware) MakeMove(ctx context.Context, game *chess.Game) (*chess_state
 	}
 }
 
-func (h *Hardware) StartGame() error {
+func (h *Hardware) StartGame(stateSender chess_state.StateSender) error {
 	for {
+		missing := "Waiting for all pieces to start the game. Missing: "
+		commaNeeded := false
+		addMissing := func(i, j int) {
+			if !commaNeeded {
+				commaNeeded = true
+			} else {
+				missing += ", "
+			}
+			missing += string([]byte{byte('A' + i), byte('1' + j)})
+		}
+
 		time.Sleep(time.Second)
 		data, err := h.ReadMatrix()
 		if err != nil {
@@ -107,7 +119,7 @@ func (h *Hardware) StartGame() error {
 		for i := 0; i < 8; i++ {
 			for j := 0; j < 2; j++ {
 				if !data[i][j] {
-					log.Printf("Missing (%v, %v)", i, j)
+					addMissing(i, j)
 					done = false
 				}
 			}
@@ -121,7 +133,7 @@ func (h *Hardware) StartGame() error {
 					continue
 				}
 				if !data[i][j] {
-					log.Printf("Missing (%v, %v)", i, j)
+					addMissing(i, j)
 					done = false
 				}
 			}
@@ -129,6 +141,9 @@ func (h *Hardware) StartGame() error {
 		if done {
 			break
 		}
+
+		missing += "."
+		stateSender.StateSend(missing)
 	}
 	return nil
 }

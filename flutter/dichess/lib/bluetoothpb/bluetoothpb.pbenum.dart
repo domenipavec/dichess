@@ -43,11 +43,13 @@ class Response_Type extends $pb.ProtobufEnum {
   static const Response_Type NOOP = Response_Type._(0, 'NOOP');
   static const Response_Type GAME_UPDATE = Response_Type._(1, 'GAME_UPDATE');
   static const Response_Type WIFI_UPDATE = Response_Type._(2, 'WIFI_UPDATE');
+  static const Response_Type STATE_UPDATE = Response_Type._(3, 'STATE_UPDATE');
 
   static const $core.List<Response_Type> values = <Response_Type> [
     NOOP,
     GAME_UPDATE,
     WIFI_UPDATE,
+    STATE_UPDATE,
   ];
 
   static final $core.Map<$core.int, Response_Type> _byValue = $pb.ProtobufEnum.initByValue(values);

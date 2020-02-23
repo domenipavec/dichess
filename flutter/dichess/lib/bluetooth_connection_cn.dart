@@ -4,10 +4,13 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+import 'package:flutter_chess_board/flutter_chess_board.dart';
 
 import 'bluetooth_state_cn.dart';
 import 'bluetoothpb/bluetoothpb.pb.dart';
 import 'util/length_decoder.dart';
+import 'package:chess/chess.dart' as chess;
+
 
 class BluetoothConnectionCN extends ChangeNotifier {
   BluetoothConnection _bluetoothConnection;
@@ -16,9 +19,16 @@ class BluetoothConnectionCN extends ChangeNotifier {
   bool isConnecting = true;
   Response latestResponse = Response();
   List<Response_WifiNetwork> networks = [];
+  ChessBoard chessBoard = ChessBoard(
+    size: 200,
+    chessBoardController: ChessBoardController(),
+    enableUserMoves: false,
+  );
+  String state = "";
 
 
   BluetoothConnectionCN(this._bluetoothStateCN) : super() {
+    chessBoard.chessBoardController.game = chess.Chess();
 
     BluetoothConnection.toAddress(_bluetoothStateCN.connectedDevice.address).timeout(Duration(seconds: 10)).then((connection) {
       isConnecting = false;
@@ -27,22 +37,25 @@ class BluetoothConnectionCN extends ChangeNotifier {
 
       var _streamSubscrition = connection.input.transform(StreamTransformer.fromBind(lengthDecoder)).listen((r) {
         var response = Response.fromBuffer(r);
+        print(response);
         switch (response.type) {
           case Response_Type.WIFI_UPDATE:
             networks = response.networks;
             break;
           case Response_Type.GAME_UPDATE:
             latestResponse = response;
+            if (response.hasChessBoard()) {
+              chessBoard.chessBoardController.game.load(response.chessBoard.fen);
+              if (chessBoard.chessBoardController.refreshBoard != null) {
+                chessBoard.chessBoardController.refreshBoard();
+              }
+            }
+            break;
+          case Response_Type.STATE_UPDATE:
+            state = response.state;
             break;
         }
         notifyListeners();
-
-//        if (response.hasChessBoard()) {
-//          setState(() {
-//            print(_chessController.game.load(response.chessBoard.fen));
-//            print(_chessController.refreshBoard());
-//          });
-//        }
       });
 
       connection.output.done.then((_) {

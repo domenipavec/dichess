@@ -4,6 +4,8 @@ import (
 	"context"
 	"flag"
 	"log"
+	"os"
+	"runtime/pprof"
 
 	"github.com/Zemanta/gracefulshutdown"
 	"github.com/Zemanta/gracefulshutdown/shutdownmanagers/posixsignal"
@@ -16,6 +18,7 @@ import (
 )
 
 var noHardware = flag.Bool("no_hardware", false, "disable hardware init and use fake")
+var cpuprofile = flag.Bool("cpuprofile", false, "write cpu profile to file")
 
 const btChannel = 1
 
@@ -24,6 +27,15 @@ func main() {
 	defer cancel()
 
 	flag.Parse()
+
+	if *cpuprofile {
+		f, err := os.Create("cpu.pprof")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+		pprof.StartCPUProfile(f)
+	}
 
 	hw := hardware.New()
 	if *noHardware {
@@ -53,7 +65,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	controller := &chess_state.Controller{Observers: observers}
+	stateSenders := &chess_state.StateSenders{}
+	stateSenders.Add(&chess_state.LoggingStateSender{})
+
+	controller := &chess_state.Controller{Observers: observers, StateSenders: stateSenders}
 	server := &bluetooth.Server{
 		Controller: controller,
 		Channel:    btChannel,
@@ -72,6 +87,7 @@ func main() {
 	}
 	gs.AddShutdownCallback(dichessProfile)
 	gs.AddShutdownCallback(server)
+	gs.AddShutdownCallback(gracefulshutdown.ShutdownFunc(func(string) error { pprof.StopCPUProfile(); return nil }))
 
 	if err := gs.Start(); err != nil {
 		log.Fatalf("Could not start graceful shutdown: %v", err)

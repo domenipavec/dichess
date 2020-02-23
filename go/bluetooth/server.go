@@ -51,7 +51,10 @@ func (s *Server) Handle(conn net.Conn) {
 	}()
 
 	handler := &connHandler{conn: conn, server: s}
-	s.Controller.Observers.Add(handler)
+	observerId := s.Controller.Observers.Add(handler)
+	defer s.Controller.Observers.Remove(observerId)
+	stateSenderId := s.Controller.StateSenders.Add(handler)
+	defer s.Controller.StateSenders.Remove(stateSenderId)
 
 	if err := handler.Handle(); err != nil {
 		log.Printf("Handler exited: %v", err)

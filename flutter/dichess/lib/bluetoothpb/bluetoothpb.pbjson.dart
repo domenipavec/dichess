@@ -88,6 +88,7 @@ const Response_Type$json = const {
     const {'1': 'NOOP', '2': 0},
     const {'1': 'GAME_UPDATE', '2': 1},
     const {'1': 'WIFI_UPDATE', '2': 2},
+    const {'1': 'STATE_UPDATE', '2': 3},
   ],
 };
 

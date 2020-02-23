@@ -34,6 +34,7 @@ type Coil interface {
 
 type Hardware struct {
 	initialized bool
+	fake        bool
 
 	matrix Matrix
 	xAxis  Axis
@@ -126,6 +127,7 @@ func (h *Hardware) InitializeFake() error {
 	h.yAxis = &FakeAxis{}
 	h.coil = &FakeCoil{}
 	h.matrix = &FakeMatrix{}
+	h.fake = true
 
 	return h.Initialize()
 }

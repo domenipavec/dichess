@@ -31,7 +31,8 @@ func NewUciPlayer(cs *bluetoothpb.Settings_ComputerSettings) (*UciPlayer, error)
 	return &UciPlayer{engine, int64(cs.TimeLimitMs)}, nil
 }
 
-func (p *UciPlayer) MakeMove(game *chess.Game) (*Move, error) {
+func (p *UciPlayer) MakeMove(stateSender StateSender, game *chess.Game) (*Move, error) {
+	stateSender.StateSend("Computer's turn. Thinking...")
 	if err := p.engine.SetFEN(game.FEN()); err != nil {
 		return nil, err
 	}
