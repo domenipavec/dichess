@@ -50,6 +50,9 @@ class BluetoothConnectionCN extends ChangeNotifier {
                 chessBoard.chessBoardController.refreshBoard();
               }
             }
+            if (response.state != "") {
+              state = response.state;
+            }
             break;
           case Response_Type.STATE_UPDATE:
             state = response.state;

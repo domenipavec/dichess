@@ -12,6 +12,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/matematik7/dichess/go/bluetoothpb"
 	"github.com/matematik7/dichess/go/chess_state"
+	"github.com/notnil/chess"
 	"github.com/pkg/errors"
 )
 
@@ -37,6 +38,11 @@ func (h *connHandler) sendUpdate(game *chess_state.Game, move *chess_state.Move,
 		msg.ChessBoard = &bluetoothpb.Response_ChessBoard{
 			Fen: game.Game.FEN(),
 		}
+		notation := chess.AlgebraicNotation{}
+		positions := game.Game.Positions()
+		for i, move := range game.Game.Moves() {
+			msg.Moves = append(msg.Moves, notation.Encode(positions[i], move))
+		}
 	}
 
 	return h.send(msg)
@@ -59,6 +65,7 @@ func (h *connHandler) send(msg proto.Message) error {
 }
 
 func (h *connHandler) Handle() error {
+	time.Sleep(100 * time.Millisecond)
 	if err := h.sendUpdate(h.server.Controller.GetGame(), nil, h.server.Controller.GetSettings()); err != nil {
 		return err
 	}

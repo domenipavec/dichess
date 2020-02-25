@@ -32,12 +32,31 @@ class DeviceScreen extends StatelessWidget {
         }
         Widget body;
         if (bluetoothConnectionCN.latestResponse.gameInProgress) {
+          var moves = bluetoothConnectionCN.latestResponse.moves;
           body = Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Center(child: bluetoothConnectionCN.chessBoard),
               Text(bluetoothConnectionCN.state),
+              Expanded(
+                child: ListView.builder(
+                  reverse: true,
+                  itemCount: (moves.length/2).ceil(),
+                  itemBuilder: (context, idx) {
+                    idx = (moves.length/2).ceil() - idx - 1;
+                    var move1 = moves[2*idx];
+                    var move2 = "";
+                    if (moves.length > 2*idx+1) {
+                      move2 = moves[2*idx+1];
+                    }
+                    return Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                      child: Text("${idx+1}. ${move1} ${move2}"),
+                    );
+                  },
+                ),
+              )
             ],
           );
         } else {
