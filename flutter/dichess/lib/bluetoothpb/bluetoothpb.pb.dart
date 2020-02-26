@@ -261,6 +261,7 @@ class Response_WifiNetwork extends $pb.GeneratedMessage {
 class Response_ChessBoard extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo('Response.ChessBoard', package: const $pb.PackageName('bluetoothpb'), createEmptyInstance: create)
     ..aOS(1, 'fen')
+    ..aOB(2, 'rotate')
     ..hasRequiredFields = false
   ;
 
@@ -287,6 +288,15 @@ class Response_ChessBoard extends $pb.GeneratedMessage {
   $core.bool hasFen() => $_has(0);
   @$pb.TagNumber(1)
   void clearFen() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get rotate => $_getBF(1);
+  @$pb.TagNumber(2)
+  set rotate($core.bool v) { $_setBool(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasRotate() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRotate() => clearField(2);
 }
 
 class Response extends $pb.GeneratedMessage {

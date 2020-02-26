@@ -20,8 +20,7 @@ type Game struct {
 	Observers    *Observers
 	StateSenders *StateSenders
 	Game         *chess.Game
-	current      int
-	players      []Player
+	Players      []Player
 }
 
 func NewGame(player1, player2 Player, Observers *Observers, StateSenders *StateSenders) *Game {
@@ -29,13 +28,13 @@ func NewGame(player1, player2 Player, Observers *Observers, StateSenders *StateS
 		Game:         chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation{})),
 		Observers:    Observers,
 		StateSenders: StateSenders,
-		players:      []Player{player1, player2},
+		Players:      []Player{player1, player2},
 	}
 }
 
 func (g *Game) Play() error {
 	defer func() {
-		for _, player := range g.players {
+		for _, player := range g.Players {
 			if err := player.Close(); err != nil {
 				log.Printf("Could not close player: %v", err)
 			}
@@ -46,16 +45,17 @@ func (g *Game) Play() error {
 	for g.Game.Outcome() == chess.NoOutcome {
 		g.Observers.Update(g.StateSenders, g, move)
 
-		newMove, err := g.players[g.current].MakeMove(g.StateSenders, g.Game)
+		var player Player
+		if g.Game.Position().Turn() == chess.White {
+			player = g.Players[0]
+		} else {
+			player = g.Players[1]
+		}
+		newMove, err := player.MakeMove(g.StateSenders, g.Game)
 		if err != nil {
 			return err
 		}
 		move = newMove
-
-		g.current++
-		if g.current > 1 {
-			g.current = 0
-		}
 	}
 
 	// handle outcome

@@ -79,6 +79,7 @@ const Response_ChessBoard$json = const {
   '1': 'ChessBoard',
   '2': const [
     const {'1': 'fen', '3': 1, '4': 1, '5': 9, '10': 'fen'},
+    const {'1': 'rotate', '3': 2, '4': 1, '5': 8, '10': 'rotate'},
   ],
 };
 

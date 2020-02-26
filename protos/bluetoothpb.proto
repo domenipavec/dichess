@@ -54,11 +54,15 @@ message Response {
 
 	bool gameInProgress = 4;
 	repeated string moves = 5;
+
+	// not used for now
 	bool whiteTurn = 6;
+
 	string state = 7;
 
 	message ChessBoard {
 		string fen = 1;
+		bool rotate = 2;
 	}
 	ChessBoard chess_board = 8;
 }

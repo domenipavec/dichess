@@ -37,7 +37,14 @@ class DeviceScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Center(child: bluetoothConnectionCN.chessBoard),
+              Center(
+                  child: ChessBoard(
+                    size: 200,
+                    chessBoardController: bluetoothConnectionCN.chessBoardController,
+                    enableUserMoves: false,
+                    whiteSideTowardsUser: !bluetoothConnectionCN.rotateBoard,
+                  ),
+              ),
               Text(bluetoothConnectionCN.state),
               Expanded(
                 child: ListView.builder(

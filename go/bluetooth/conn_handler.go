@@ -35,9 +35,20 @@ func (h *connHandler) sendUpdate(game *chess_state.Game, move *chess_state.Move,
 		Settings:       settings,
 	}
 	if game != nil {
-		msg.ChessBoard = &bluetoothpb.Response_ChessBoard{
-			Fen: game.Game.FEN(),
+		rotate := false
+		if _, ok := game.Players[1].(*chess_state.HumanPlayer); ok {
+			rotate = true
+			if game.Game.Position().Turn() == chess.White {
+				if _, ok := game.Players[0].(*chess_state.HumanPlayer); ok {
+					rotate = false
+				}
+			}
 		}
+		msg.ChessBoard = &bluetoothpb.Response_ChessBoard{
+			Fen:    game.Game.FEN(),
+			Rotate: rotate,
+		}
+
 		notation := chess.AlgebraicNotation{}
 		positions := game.Game.Positions()
 		for i, move := range game.Game.Moves() {

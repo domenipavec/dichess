@@ -19,16 +19,14 @@ class BluetoothConnectionCN extends ChangeNotifier {
   bool isConnecting = true;
   Response latestResponse = Response();
   List<Response_WifiNetwork> networks = [];
-  ChessBoard chessBoard = ChessBoard(
-    size: 200,
-    chessBoardController: ChessBoardController(),
-    enableUserMoves: false,
-  );
+  ChessBoardController chessBoardController = ChessBoardController();
+  bool rotateBoard = false;
   String state = "";
 
 
+
   BluetoothConnectionCN(this._bluetoothStateCN) : super() {
-    chessBoard.chessBoardController.game = chess.Chess();
+    chessBoardController.game = chess.Chess();
 
     BluetoothConnection.toAddress(_bluetoothStateCN.connectedDevice.address).timeout(Duration(seconds: 10)).then((connection) {
       isConnecting = false;
@@ -45,10 +43,8 @@ class BluetoothConnectionCN extends ChangeNotifier {
           case Response_Type.GAME_UPDATE:
             latestResponse = response;
             if (response.hasChessBoard()) {
-              chessBoard.chessBoardController.game.load(response.chessBoard.fen);
-              if (chessBoard.chessBoardController.refreshBoard != null) {
-                chessBoard.chessBoardController.refreshBoard();
-              }
+              rotateBoard = response.chessBoard.rotate;
+              chessBoardController.game.load(response.chessBoard.fen);
             }
             if (response.state != "") {
               state = response.state;

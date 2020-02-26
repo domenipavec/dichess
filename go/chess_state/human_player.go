@@ -3,6 +3,7 @@ package chess_state
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/notnil/chess"
 )
@@ -21,7 +22,7 @@ type inputResult struct {
 }
 
 func (p *HumanPlayer) MakeMove(stateSender StateSender, game *chess.Game) (*Move, error) {
-	stateSender.StateSend(fmt.Sprintf("Waiting for move, %s turn.", game.Position().Turn()))
+	stateSender.StateSend(fmt.Sprintf("Waiting for move, %s turn.", strings.ToLower(game.Position().Turn().Name())))
 	ctx, cancel := context.WithCancel(context.Background())
 
 	resultChan := make(chan inputResult)
