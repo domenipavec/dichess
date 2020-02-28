@@ -15,8 +15,9 @@ type GameStarter interface {
 }
 
 type Controller struct {
-	HardwareInput HumanInput
-	VoiceInput    HumanInput
+	BluetoothInput HumanInput
+	HardwareInput  HumanInput
+	VoiceInput     HumanInput
 
 	HardwareGameStarter GameStarter
 	VoiceGameStarter    GameStarter
@@ -78,7 +79,9 @@ func (c *Controller) gameStarter() {
 func (c *Controller) createPlayer(s *bluetoothpb.Settings, typ bluetoothpb.Settings_PlayerType) (Player, error) {
 	switch typ {
 	case bluetoothpb.Settings_HUMAN:
-		inputs := []HumanInput{}
+		inputs := []HumanInput{
+			c.BluetoothInput,
+		}
 		if c.HardwareInput != nil {
 			inputs = append(inputs, c.HardwareInput)
 		}

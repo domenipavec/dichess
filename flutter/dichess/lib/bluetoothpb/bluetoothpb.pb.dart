@@ -262,6 +262,7 @@ class Response_ChessBoard extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo('Response.ChessBoard', package: const $pb.PackageName('bluetoothpb'), createEmptyInstance: create)
     ..aOS(1, 'fen')
     ..aOB(2, 'rotate')
+    ..aOB(3, 'canMakeMove', protoName: 'canMakeMove')
     ..hasRequiredFields = false
   ;
 
@@ -297,6 +298,15 @@ class Response_ChessBoard extends $pb.GeneratedMessage {
   $core.bool hasRotate() => $_has(1);
   @$pb.TagNumber(2)
   void clearRotate() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get canMakeMove => $_getBF(2);
+  @$pb.TagNumber(3)
+  set canMakeMove($core.bool v) { $_setBool(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasCanMakeMove() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearCanMakeMove() => clearField(3);
 }
 
 class Response extends $pb.GeneratedMessage {

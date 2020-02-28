@@ -1,6 +1,7 @@
 package bluetooth
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -10,6 +11,7 @@ import (
 	"github.com/matematik7/dicar-go/btserver/rfcomm"
 	"github.com/matematik7/dichess/go/chess_state"
 	"github.com/matematik7/dichess/go/wpa"
+	"github.com/notnil/chess"
 	"github.com/pkg/errors"
 )
 
@@ -20,7 +22,19 @@ type Server struct {
 	mutex sync.Mutex
 	Wpa   *wpa.Wpa
 
+	moveChan chan string
+
 	ln net.Listener
+}
+
+func NewServer(channel int, controller *chess_state.Controller, wpa *wpa.Wpa) *Server {
+	return &Server{
+		Channel:    channel,
+		Controller: controller,
+		Wpa:        wpa,
+
+		moveChan: make(chan string),
+	}
 }
 
 func (s *Server) Serve() error {
@@ -73,4 +87,22 @@ func (s *Server) getNetwork(ssid string) (wpasupplicant.ConfiguredNetwork, error
 	}
 
 	return nil, errors.Errorf("network '%v' not found", ssid)
+}
+
+func (s *Server) MakeMove(ctx context.Context, stateSender chess_state.StateSender, game *chess.Game) (*chess_state.Move, error) {
+	move := &chess_state.Move{
+		ShouldMove: true,
+		ShouldSay:  true,
+	}
+	select {
+	case <-ctx.Done():
+		return move, nil
+	case moveStr := <-s.moveChan:
+		mv, err := chess.AlgebraicNotation{}.Decode(game.Position(), moveStr)
+		if err != nil {
+			return nil, err
+		}
+		move.Move = mv
+		return move, nil
+	}
 }

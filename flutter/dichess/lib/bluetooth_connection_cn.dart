@@ -21,6 +21,7 @@ class BluetoothConnectionCN extends ChangeNotifier {
   List<Response_WifiNetwork> networks = [];
   ChessBoardController chessBoardController = ChessBoardController();
   bool rotateBoard = false;
+  bool canMakeMove = false;
   String state = "";
 
 
@@ -44,6 +45,7 @@ class BluetoothConnectionCN extends ChangeNotifier {
             latestResponse = response;
             if (response.hasChessBoard()) {
               rotateBoard = response.chessBoard.rotate;
+              canMakeMove = response.chessBoard.canMakeMove;
               chessBoardController.game.load(response.chessBoard.fen);
             }
             if (response.state != "") {
@@ -122,6 +124,13 @@ class BluetoothConnectionCN extends ChangeNotifier {
     var request = Request();
     request.type = Request_Type.UPDATE_SETTINGS;
     request.settings = latestResponse.settings.copyWith(update);
+    _send(request);
+  }
+
+  void makeMove(String move) {
+    var request = Request();
+    request.type = Request_Type.MOVE;
+    request.move = move;
     _send(request);
   }
 }

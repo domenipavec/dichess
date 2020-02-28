@@ -69,11 +69,8 @@ func main() {
 	stateSenders.Add(&chess_state.LoggingStateSender{})
 
 	controller := &chess_state.Controller{Observers: observers, StateSenders: stateSenders}
-	server := &bluetooth.Server{
-		Controller: controller,
-		Channel:    btChannel,
-		Wpa:        wpa,
-	}
+	server := bluetooth.NewServer(btChannel, controller, wpa)
+	controller.BluetoothInput = server
 
 	gs := gracefulshutdown.New()
 	gs.AddShutdownManager(posixsignal.NewPosixSignalManager())

@@ -41,8 +41,12 @@ class DeviceScreen extends StatelessWidget {
                   child: ChessBoard(
                     size: 200,
                     chessBoardController: bluetoothConnectionCN.chessBoardController,
-                    enableUserMoves: false,
+                    enableUserMoves: bluetoothConnectionCN.canMakeMove,
                     whiteSideTowardsUser: !bluetoothConnectionCN.rotateBoard,
+                    onMove: (_) {
+                      var move = bluetoothConnectionCN.chessBoardController.game.getHistory()[0];
+                      bluetoothConnectionCN.makeMove(move);
+                    },
                   ),
               ),
               Text(bluetoothConnectionCN.state),

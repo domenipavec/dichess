@@ -62,6 +62,9 @@ func (g *Game) Play() error {
 		move = newMove
 	}
 
+	g.Observers.Update(g.StateSenders, g, move)
+	g.StateSenders.StateSend(g.Game.Outcome().String())
+
 	// handle outcome
 
 	return nil

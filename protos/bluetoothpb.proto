@@ -63,6 +63,7 @@ message Response {
 	message ChessBoard {
 		string fen = 1;
 		bool rotate = 2;
+		bool canMakeMove = 3;
 	}
 	ChessBoard chess_board = 8;
 }

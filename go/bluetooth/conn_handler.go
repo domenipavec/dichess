@@ -44,9 +44,20 @@ func (h *connHandler) sendUpdate(game *chess_state.Game, move *chess_state.Move,
 				}
 			}
 		}
+		canMakeMove := false
+		if game.Game.Position().Turn() == chess.White {
+			if _, ok := game.Players[0].(*chess_state.HumanPlayer); ok {
+				canMakeMove = true
+			}
+		} else {
+			if _, ok := game.Players[1].(*chess_state.HumanPlayer); ok {
+				canMakeMove = true
+			}
+		}
 		msg.ChessBoard = &bluetoothpb.Response_ChessBoard{
-			Fen:    game.Game.FEN(),
-			Rotate: rotate,
+			Fen:         game.Game.FEN(),
+			Rotate:      rotate,
+			CanMakeMove: canMakeMove,
 		}
 
 		notation := chess.AlgebraicNotation{}
@@ -176,6 +187,11 @@ func (h *connHandler) handleRequest(request *bluetoothpb.Request) error {
 		h.server.Controller.SetSettings(request.GetSettings())
 		if err := h.sendUpdate(h.server.Controller.GetGame(), nil, h.server.Controller.GetSettings()); err != nil {
 			return err
+		}
+	case bluetoothpb.Request_MOVE:
+		select {
+		case h.server.moveChan <- request.Move:
+		default:
 		}
 	}
 
