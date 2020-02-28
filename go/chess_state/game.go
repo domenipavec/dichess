@@ -12,6 +12,7 @@ type Player interface {
 }
 
 type Move struct {
+	*chess.Move
 	ShouldMove bool
 	ShouldSay  bool
 }
@@ -53,6 +54,9 @@ func (g *Game) Play() error {
 		}
 		newMove, err := player.MakeMove(g.StateSenders, g.Game)
 		if err != nil {
+			return err
+		}
+		if err := g.Game.Move(newMove.Move); err != nil {
 			return err
 		}
 		move = newMove

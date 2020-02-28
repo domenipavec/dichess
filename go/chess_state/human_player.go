@@ -30,7 +30,10 @@ func (p *HumanPlayer) MakeMove(stateSender StateSender, game *chess.Game) (*Move
 		input := input
 		go func() {
 			move, err := input.MakeMove(ctx, stateSender, game)
-			resultChan <- inputResult{err: err, move: move}
+			select {
+			case resultChan <- inputResult{err: err, move: move}:
+			default:
+			}
 		}()
 	}
 

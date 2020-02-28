@@ -8,7 +8,6 @@ import (
 
 	"github.com/matematik7/dichess/go/chess_state"
 	"github.com/notnil/chess"
-	"github.com/pkg/errors"
 )
 
 func (h *Hardware) MakeMove(ctx context.Context, stateSender chess_state.StateSender, game *chess.Game) (*chess_state.Move, error) {
@@ -85,11 +84,8 @@ func (h *Hardware) MakeMove(ctx context.Context, stateSender chess_state.StateSe
 			continue
 		}
 
-		if err := game.Move(validMoves[0]); err != nil {
-			return nil, errors.Wrap(err, "couldn't make a valid move")
-		}
-
 		return &chess_state.Move{
+			Move:       validMoves[0],
 			ShouldMove: false,
 			ShouldSay:  true,
 		}, nil

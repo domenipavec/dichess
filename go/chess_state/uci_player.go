@@ -40,10 +40,12 @@ func (p *UciPlayer) MakeMove(stateSender StateSender, game *chess.Game) (*Move, 
 	if err != nil {
 		return nil, err
 	}
-	if err := game.MoveStr(result.BestMove); err != nil {
+	move, err := chess.LongAlgebraicNotation{}.Decode(game.Position(), result.BestMove)
+	if err != nil {
 		return nil, err
 	}
 	return &Move{
+		Move:       move,
 		ShouldMove: true,
 		ShouldSay:  true,
 	}, nil

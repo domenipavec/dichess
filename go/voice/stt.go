@@ -38,11 +38,8 @@ func (v *Voice) MakeMove(ctx context.Context, stateSender chess_state.StateSende
 		return nil, nil
 	}
 
-	if err := game.Move(moves[0]); err != nil {
-		return nil, errors.Wrap(err, "couldn't make voice move")
-	}
-
 	return &chess_state.Move{
+		Move:       moves[0],
 		ShouldMove: true,
 		ShouldSay:  false,
 	}, nil
