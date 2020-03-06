@@ -133,4 +133,16 @@ class BluetoothConnectionCN extends ChangeNotifier {
     request.move = move;
     _send(request);
   }
+
+  void undoMove() {
+    var request = Request();
+    request.type = Request_Type.UNDO_MOVE;
+    _send(request);
+  }
+
+  void newGame() {
+    var request = Request();
+    request.type = Request_Type.NEW_GAME;
+    _send(request);
+  }
 }

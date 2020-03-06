@@ -1,6 +1,8 @@
 package chess_state
 
 import (
+	"context"
+
 	"github.com/freeeve/uci"
 	"github.com/matematik7/dichess/go/bluetoothpb"
 	"github.com/notnil/chess"
@@ -31,24 +33,44 @@ func NewUciPlayer(cs *bluetoothpb.Settings_ComputerSettings) (*UciPlayer, error)
 	return &UciPlayer{engine, int64(cs.TimeLimitMs)}, nil
 }
 
-func (p *UciPlayer) MakeMove(stateSender StateSender, game *chess.Game) (*Move, error) {
+type result struct {
+	bestMove string
+	err      error
+}
+
+func (p *UciPlayer) MakeMove(ctx context.Context, stateSender StateSender, game *chess.Game) (*Move, error) {
 	stateSender.StateSend("Computer's turn. Thinking...")
 	if err := p.engine.SetFEN(game.FEN()); err != nil {
 		return nil, err
 	}
-	result, err := p.engine.Go(0, "", p.timeLimit)
-	if err != nil {
-		return nil, err
+
+	resultChan := make(chan result)
+	go func() {
+		r, err := p.engine.Go(0, "", p.timeLimit)
+		if err != nil {
+			resultChan <- result{err: err}
+		}
+		resultChan <- result{bestMove: r.BestMove}
+	}()
+
+	select {
+	case <-ctx.Done():
+		return &Move{}, nil
+	case r := <-resultChan:
+		if r.err != nil {
+			return nil, r.err
+		}
+		move, err := chess.LongAlgebraicNotation{}.Decode(game.Position(), r.bestMove)
+		if err != nil {
+			return nil, err
+		}
+		return &Move{
+			Move:       move,
+			ShouldMove: true,
+			ShouldSay:  true,
+		}, nil
 	}
-	move, err := chess.LongAlgebraicNotation{}.Decode(game.Position(), result.BestMove)
-	if err != nil {
-		return nil, err
-	}
-	return &Move{
-		Move:       move,
-		ShouldMove: true,
-		ShouldSay:  true,
-	}, nil
+
 }
 
 func (p *UciPlayer) Close() error {

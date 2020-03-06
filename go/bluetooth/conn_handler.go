@@ -1,6 +1,7 @@
 package bluetooth
 
 import (
+	"context"
 	"log"
 	"net"
 	"sort"
@@ -24,7 +25,7 @@ type connHandler struct {
 	wifiSenderStop chan struct{}
 }
 
-func (h *connHandler) Update(_ chess_state.StateSender, game *chess_state.Game, move *chess_state.Move) error {
+func (h *connHandler) Update(_ context.Context, _ chess_state.StateSender, game *chess_state.Game, move *chess_state.Move) error {
 	return h.sendUpdate(game, move, nil)
 }
 
@@ -192,6 +193,16 @@ func (h *connHandler) handleRequest(request *bluetoothpb.Request) error {
 		select {
 		case h.server.moveChan <- request.Move:
 		default:
+		}
+	case bluetoothpb.Request_UNDO_MOVE:
+		select {
+		case h.server.moveChan <- "UNDO":
+		default:
+		}
+	case bluetoothpb.Request_NEW_GAME:
+		h.server.Controller.StopGame()
+		if err := h.sendUpdate(nil, nil, h.server.Controller.GetSettings()); err != nil {
+			return err
 		}
 	}
 

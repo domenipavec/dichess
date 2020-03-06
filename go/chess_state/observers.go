@@ -1,13 +1,14 @@
 package chess_state
 
 import (
+	"context"
 	"log"
 	"sync"
 )
 
 // Observer should use game.Game as read only
 type Observer interface {
-	Update(StateSender, *Game, *Move) error
+	Update(context.Context, StateSender, *Game, *Move) error
 }
 
 type Observers struct {
@@ -28,7 +29,7 @@ func (o *Observers) Remove(id int) {
 }
 
 // Update calls update on all observers
-func (o *Observers) Update(stateSender StateSender, game *Game, move *Move) {
+func (o *Observers) Update(ctx context.Context, stateSender StateSender, game *Game, move *Move) {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
 
@@ -39,7 +40,7 @@ func (o *Observers) Update(stateSender StateSender, game *Game, move *Move) {
 		}
 		observer := observer
 		go func() {
-			errChan <- observer.Update(stateSender, game, move)
+			errChan <- observer.Update(ctx, stateSender, game, move)
 		}()
 	}
 
@@ -57,7 +58,7 @@ func (o *Observers) Update(stateSender StateSender, game *Game, move *Move) {
 
 type LoggingObserver struct{}
 
-func (o *LoggingObserver) Update(_ StateSender, game *Game, move *Move) error {
+func (o *LoggingObserver) Update(_ context.Context, _ StateSender, game *Game, move *Move) error {
 	log.Println(game.Game.Position().Board().Draw())
 	return nil
 }

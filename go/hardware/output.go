@@ -1,6 +1,7 @@
 package hardware
 
 import (
+	"context"
 	"log"
 	"math"
 	"time"
@@ -122,12 +123,16 @@ func (h *Hardware) move(x1, y1, x2, y2 float64, color chess.Color, rotate bool) 
 	return nil
 }
 
-func (h *Hardware) Update(stateSender chess_state.StateSender, game *chess_state.Game, move *chess_state.Move) error {
+func (h *Hardware) Update(ctx context.Context, stateSender chess_state.StateSender, game *chess_state.Game, move *chess_state.Move) error {
 	stateSender.StateSend("Moving pieces.")
 	if h.fake {
 		return nil
 	}
 	if move == nil || !move.ShouldMove {
+		return nil
+	}
+	if move.Undo {
+		// wait for undo observing ctx
 		return nil
 	}
 	moves := game.Game.Moves()
@@ -145,6 +150,11 @@ func (h *Hardware) Update(stateSender chess_state.StateSender, game *chess_state
 			}
 			if data[gameMove.S2().File()][gameMove.S2().Rank()] {
 				break
+			}
+			select {
+			case <-ctx.Done():
+				return nil
+			default:
 			}
 			time.Sleep(time.Millisecond * 100)
 		}

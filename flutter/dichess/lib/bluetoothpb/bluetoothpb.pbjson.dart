@@ -118,6 +118,7 @@ const Request_Type$json = const {
     const {'1': 'UPDATE_SETTINGS', '2': 6},
     const {'1': 'UNDO_MOVE', '2': 7},
     const {'1': 'MOVE', '2': 8},
+    const {'1': 'NEW_GAME', '2': 9},
   ],
 };
 

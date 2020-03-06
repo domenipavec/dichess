@@ -98,6 +98,10 @@ func (s *Server) MakeMove(ctx context.Context, stateSender chess_state.StateSend
 	case <-ctx.Done():
 		return move, nil
 	case moveStr := <-s.moveChan:
+		if moveStr == "UNDO" {
+			move.Undo = true
+			return move, nil
+		}
 		mv, err := chess.AlgebraicNotation{}.Decode(game.Position(), moveStr)
 		if err != nil {
 			return nil, err

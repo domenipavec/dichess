@@ -21,10 +21,16 @@ type inputResult struct {
 	move *Move
 }
 
-func (p *HumanPlayer) MakeMove(stateSender StateSender, game *chess.Game) (*Move, error) {
-	stateSender.StateSend(fmt.Sprintf("Waiting for move, %s turn.", strings.ToLower(game.Position().Turn().Name())))
-	ctx, cancel := context.WithCancel(context.Background())
+func (p *HumanPlayer) MakeMove(ctx context.Context, stateSender StateSender, game *chess.Game) (*Move, error) {
+	state := fmt.Sprintf("Waiting for move, %s turn.", strings.ToLower(game.Position().Turn().Name()))
+	moves := game.Moves()
+	if len(moves) > 0 && moves[len(moves)-1].HasTag(chess.Check) {
+		state = "Check. " + state
+	}
+	stateSender.StateSend(state)
 
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 	resultChan := make(chan inputResult)
 	for _, input := range p.Inputs {
 		input := input
@@ -37,9 +43,13 @@ func (p *HumanPlayer) MakeMove(stateSender StateSender, game *chess.Game) (*Move
 		}()
 	}
 
-	result := <-resultChan
-	cancel()
-	return result.move, result.err
+	select {
+	case result := <-resultChan:
+		cancel()
+		return result.move, result.err
+	case <-ctx.Done():
+		return &Move{}, nil
+	}
 }
 
 func (p *HumanPlayer) Close() error {

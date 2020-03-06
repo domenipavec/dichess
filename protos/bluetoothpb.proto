@@ -67,6 +67,7 @@ message Response {
 	}
 	ChessBoard chess_board = 8;
 }
+
 message Request {
 	enum Type {
 		NOOP = 0;
@@ -81,6 +82,7 @@ message Request {
 
 		UNDO_MOVE = 7;
 		MOVE = 8;
+		NEW_GAME = 9;
 	}
 	Type type = 1;
 

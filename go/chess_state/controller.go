@@ -1,6 +1,7 @@
 package chess_state
 
 import (
+	"context"
 	"log"
 	"math/rand"
 	"sync"
@@ -28,7 +29,8 @@ type Controller struct {
 	settingsMutex sync.Mutex
 	settings      *bluetoothpb.Settings
 
-	game *Game
+	game   *Game
+	cancel func()
 }
 
 func (c *Controller) GetSettings() *bluetoothpb.Settings {
@@ -137,11 +139,23 @@ func (c *Controller) StartGame() error {
 	// }
 
 	c.game = NewGame(player1, player2, c.Observers, c.StateSenders)
+	ctx, cancel := context.WithCancel(context.Background())
+	c.cancel = cancel
 	go func() {
-		if err := c.game.Play(); err != nil {
+		defer cancel()
+		defer func() {
+			c.game = nil
+		}()
+		if err := c.game.Play(ctx); err != nil {
 			log.Println(err)
 		}
 	}()
 
 	return nil
+}
+
+func (c *Controller) StopGame() {
+	if c.cancel != nil {
+		c.cancel()
+	}
 }

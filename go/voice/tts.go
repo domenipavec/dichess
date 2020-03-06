@@ -15,11 +15,15 @@ import (
 	texttospeechpb "google.golang.org/genproto/googleapis/cloud/texttospeech/v1"
 )
 
-func (v *Voice) Update(stateSender chess_state.StateSender, game *chess_state.Game, move *chess_state.Move) error {
+func (v *Voice) Update(_ context.Context, stateSender chess_state.StateSender, game *chess_state.Game, move *chess_state.Move) error {
 	if len(game.Game.Moves()) < 1 {
 		return nil
 	}
 	if !move.ShouldSay {
+		return nil
+	}
+	if move.Undo {
+		// TODO: say undo?
 		return nil
 	}
 	gameMove := game.Game.Moves()[len(game.Game.Moves())-1]

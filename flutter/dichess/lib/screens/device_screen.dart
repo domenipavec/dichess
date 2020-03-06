@@ -38,18 +38,38 @@ class DeviceScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Center(
-                  child: ChessBoard(
-                    size: 200,
-                    chessBoardController: bluetoothConnectionCN.chessBoardController,
-                    enableUserMoves: bluetoothConnectionCN.canMakeMove,
-                    whiteSideTowardsUser: !bluetoothConnectionCN.rotateBoard,
-                    onMove: (_) {
-                      var move = bluetoothConnectionCN.chessBoardController.game.getHistory()[0];
-                      bluetoothConnectionCN.makeMove(move);
-                    },
-                  ),
+                child: ChessBoard(
+                  size: 200,
+                  chessBoardController: bluetoothConnectionCN.chessBoardController,
+                  enableUserMoves: bluetoothConnectionCN.canMakeMove,
+                  whiteSideTowardsUser: !bluetoothConnectionCN.rotateBoard,
+                  onMove: (_) {
+                    var move = bluetoothConnectionCN.chessBoardController.game.getHistory()[0];
+                    bluetoothConnectionCN.makeMove(move);
+                  },
+                ),
               ),
               Text(bluetoothConnectionCN.state),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.all(3),
+                    child: RaisedButton(
+                      onPressed: () { bluetoothConnectionCN.undoMove(); },
+                      child: Text('Undo move'),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(3),
+                    child: RaisedButton(
+                      onPressed: () { bluetoothConnectionCN.newGame(); },
+                      child: Text('New game'),
+                    ),
+                  ),
+                ],
+              ),
               Expanded(
                 child: ListView.builder(
                   reverse: true,
