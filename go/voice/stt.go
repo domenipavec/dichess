@@ -14,35 +14,81 @@ import (
 	"github.com/notnil/chess"
 	"github.com/pkg/errors"
 	speechpb "google.golang.org/genproto/googleapis/cloud/speech/v1"
+	texttospeechpb "google.golang.org/genproto/googleapis/cloud/texttospeech/v1"
 )
 
 func (v *Voice) MakeMove(ctx context.Context, stateSender chess_state.StateSender, game *chess.Game) (*chess_state.Move, error) {
 	phrases := v.generatePhrases(game)
-	result, err := v.recognize(ctx, phrases)
-	if err != nil {
-		return nil, err
+	if !v.Settings.GetSettings().VoiceRecognition {
+		<-ctx.Done()
+		return nil, ctx.Err()
 	}
 
-	moves, err := v.parseMove(game, result)
-	if err != nil {
-		return nil, err
-	}
+	for {
+		result, err := v.recognize(ctx, phrases)
+		if err != nil {
+			return nil, err
+		}
+		log.Printf("result: %v", result)
 
-	if len(moves) < 1 {
-		stateSender.StateSend(fmt.Sprintf("Could not recognize move from: %s", result))
-		return nil, nil
-	}
-	if len(moves) > 1 {
-		// TODO disambiguate
-		stateSender.StateSend(fmt.Sprintf("Multiple moves possible for: %s", result))
-		return nil, nil
-	}
+		moves, err := v.parseMove(game, result)
+		if err != nil {
+			return nil, err
+		}
+		log.Printf("moves: %v", moves)
 
-	return &chess_state.Move{
-		Move:       moves[0],
-		ShouldMove: true,
-		ShouldSay:  false,
-	}, nil
+		if len(moves) < 1 {
+			stateSender.StateSend(fmt.Sprintf("Could not recognize move: %s", result))
+			continue
+		}
+		if len(moves) > 1 {
+			construct := ""
+			for i := range moves {
+				if i > 0 {
+					if i < len(moves)-2 {
+						construct += ", "
+					} else {
+						construct += " or "
+					}
+				}
+				construct += moves[i].S1().String()
+			}
+			prompt := fmt.Sprintf("%s "+translations[v.Language]["ambiguous"]+" %s?", result, construct)
+			stateSender.StateSend(prompt)
+
+			if err := v.Say(prompt, texttospeechpb.SsmlVoiceGender_NEUTRAL); err != nil {
+				return nil, err
+			}
+
+			fields := make([]string, 2*len(moves))
+			for i, move := range moves {
+				fields[i] = move.S1().String()
+				fields[i] = translations[v.Language]["from"] + " " + move.S1().String()
+			}
+			from, err := v.recognize(ctx, fields)
+			if err != nil {
+				return nil, err
+			}
+
+			found := false
+			for _, move := range moves {
+				if strings.Contains(from, move.S1().String()) {
+					found = true
+					moves[0] = move
+				}
+			}
+			if !found {
+				stateSender.StateSend(fmt.Sprintf("Could not recognize move: %s from %s", result, from))
+				continue
+			}
+		}
+
+		return &chess_state.Move{
+			Move:       moves[0],
+			ShouldMove: true,
+			ShouldSay:  false,
+		}, nil
+	}
 }
 
 func (v *Voice) recognize(ctx context.Context, phrases []string) (string, error) {
@@ -51,7 +97,7 @@ func (v *Voice) recognize(ctx context.Context, phrases []string) (string, error)
 		ctx := ctx
 		select {
 		case <-ctx.Done():
-			return "", nil
+			return "", ctx.Err()
 		default:
 		}
 
@@ -93,6 +139,7 @@ func (v *Voice) recognize(ctx context.Context, phrases []string) (string, error)
 			}
 		}()
 
+		log.Printf("Phrases: %v", phrases)
 		if err := recognize.Send(&speechpb.StreamingRecognizeRequest{
 			StreamingRequest: &speechpb.StreamingRecognizeRequest_StreamingConfig{
 				StreamingConfig: &speechpb.StreamingRecognitionConfig{
@@ -150,7 +197,7 @@ func voiceSendLoop(ctx context.Context, recognize speechpb.Speech_StreamingRecog
 	for {
 		select {
 		case <-ctx.Done():
-			return nil
+			return ctx.Err()
 		default:
 		}
 
@@ -191,7 +238,7 @@ func (v *Voice) generatePhrases(game *chess.Game) []string {
 			piece -= chess.WhitePawn
 		}
 		for _, pieceStr := range piecesStrings[v.Language][piece] {
-			current := fmt.Sprintf(moveString[v.Language], pieceStr, move.S2().String())
+			current := fmt.Sprintf("%s %s %s", pieceStr, translations[v.Language]["to"], move.S2().String())
 			phraseMap[current] = true
 		}
 	}
@@ -205,7 +252,7 @@ func (v *Voice) generatePhrases(game *chess.Game) []string {
 
 func (v *Voice) parseMove(game *chess.Game, phrase string) ([]*chess.Move, error) {
 	var pieceStr, squareStr string
-	if _, err := fmt.Sscanf(phrase, moveString[v.Language], &pieceStr, &squareStr); err != nil {
+	if _, err := fmt.Sscanf(phrase, "%s "+translations[v.Language]["to"]+" %s", &pieceStr, &squareStr); err != nil {
 		return nil, errors.Wrapf(err, "couldn't parse phrase %v", phrase)
 	}
 

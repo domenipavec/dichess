@@ -37,7 +37,7 @@ func (v *Voice) Update(_ context.Context, stateSender chess_state.StateSender, g
 		piece -= chess.WhitePawn
 	}
 
-	txt := fmt.Sprintf("%s %s %s", piecesStrings[v.Language][piece][0], moveString[v.Language], gameMove.S2().String())
+	txt := fmt.Sprintf("%s %s %s", piecesStrings[v.Language][piece][0], translations[v.Language]["to"], gameMove.S2().String())
 	if err := v.Say(txt, texttospeechpb.SsmlVoiceGender_NEUTRAL); err != nil {
 		return err
 	}
@@ -66,6 +66,9 @@ func (v *Voice) StartGame(stateSender chess_state.StateSender) error {
 }
 
 func (v *Voice) Say(txt string, gender texttospeechpb.SsmlVoiceGender) error {
+	if !v.Settings.GetSettings().Sound {
+		return nil
+	}
 	req := texttospeechpb.SynthesizeSpeechRequest{
 		// Set the text input to be synthesized.
 		Input: &texttospeechpb.SynthesisInput{

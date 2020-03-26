@@ -89,7 +89,11 @@ func main() {
 
 	controller := &chess_state.Controller{Observers: observers, StateSenders: stateSenders}
 	server := bluetooth.NewServer(btChannel, controller, wpa)
-	controller.BluetoothInput = server
+	controller.Inputs = append(controller.Inputs, server)
+
+	if voice != nil {
+		voice.Settings = controller
+	}
 
 	gs := gracefulshutdown.New()
 	gs.AddShutdownManager(posixsignal.NewPosixSignalManager())
@@ -113,12 +117,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if hw != nil {
-		controller.HardwareGameStarter = hw
-		controller.HardwareInput = hw
-	}
+	controller.HardwareGameStarter = hw
+	controller.Inputs = append(controller.Inputs, hw)
 	if voice != nil {
-		controller.VoiceInput = voice
+		controller.Inputs = append(controller.Inputs, voice)
 		controller.VoiceGameStarter = voice
 	}
 	if err := controller.Start(); err != nil {

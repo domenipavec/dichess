@@ -5,10 +5,13 @@ import (
 
 	speech "cloud.google.com/go/speech/apiv1"
 	texttospeech "cloud.google.com/go/texttospeech/apiv1"
+	"github.com/matematik7/dichess/go/bluetoothpb"
 	"github.com/pkg/errors"
 )
 
 type Voice struct {
+	Settings bluetoothpb.SettingsProvider
+
 	speechClient *speech.Client
 	ttsClient    *texttospeech.Client
 	Language     string
