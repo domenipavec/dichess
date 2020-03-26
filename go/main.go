@@ -21,7 +21,7 @@ import (
 	"github.com/tj/go-update/stores/github"
 )
 
-const currentVersion = "0.1.2"
+const currentVersion = "0.1.3"
 
 var (
 	noHardware = flag.Bool("no_hardware", false, "disable hardware init and use fake")
@@ -138,7 +138,7 @@ func doUpdate(current string) error {
 				Repo:    "dichess",
 				Version: current,
 			},
-			Command: "dichess",
+			Command: "./dichess",
 		}
 
 		latest, err := manager.LatestReleases()
@@ -168,6 +168,8 @@ func doUpdate(current string) error {
 		if err := manager.Install(path); err != nil {
 			return err
 		}
+
+		return nil
 	}
 
 	return nil
