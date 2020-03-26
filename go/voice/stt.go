@@ -29,12 +29,12 @@ func (v *Voice) MakeMove(ctx context.Context, stateSender chess_state.StateSende
 	}
 
 	if len(moves) < 1 {
-		stateSender.StateSend(fmt.Sprintf("Could not recognize move from: %v", result))
+		stateSender.StateSend(fmt.Sprintf("Could not recognize move from: %s", result))
 		return nil, nil
 	}
 	if len(moves) > 1 {
 		// TODO disambiguate
-		stateSender.StateSend(fmt.Sprintf("Multiple moves possible for: %v", result))
+		stateSender.StateSend(fmt.Sprintf("Multiple moves possible for: %s", result))
 		return nil, nil
 	}
 
@@ -222,7 +222,7 @@ func (v *Voice) parseMove(game *chess.Game, phrase string) ([]*chess.Move, error
 		}
 	}
 	if piece == chess.NoPiece {
-		return nil, errors.Errorf("couldn't find piece %v", pieceStr)
+		return nil, errors.Errorf("couldn't find piece %s", pieceStr)
 	}
 	if game.Position().Turn() == chess.Black {
 		piece += chess.WhitePawn

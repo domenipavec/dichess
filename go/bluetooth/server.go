@@ -86,7 +86,7 @@ func (s *Server) getNetwork(ssid string) (wpasupplicant.ConfiguredNetwork, error
 		}
 	}
 
-	return nil, errors.Errorf("network '%v' not found", ssid)
+	return nil, errors.Errorf("network '%s' not found", ssid)
 }
 
 func (s *Server) MakeMove(ctx context.Context, stateSender chess_state.StateSender, game *chess.Game) (*chess_state.Move, error) {

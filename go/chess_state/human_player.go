@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/notnil/chess"
+	"github.com/pkg/errors"
 )
 
 type HumanPlayer struct {
@@ -43,12 +44,21 @@ func (p *HumanPlayer) MakeMove(ctx context.Context, stateSender StateSender, gam
 		}()
 	}
 
-	select {
-	case result := <-resultChan:
-		cancel()
-		return result.move, result.err
-	case <-ctx.Done():
-		return &Move{}, nil
+	errored := 0
+	for {
+		select {
+		case result := <-resultChan:
+			if result.err != nil {
+				errored++
+				if errored >= len(p.Inputs) {
+					return nil, errors.Wrapf(result.err, "all human inputs errored, last error")
+				}
+			} else {
+				return result.move, nil
+			}
+		case <-ctx.Done():
+			return &Move{}, nil
+		}
 	}
 }
 

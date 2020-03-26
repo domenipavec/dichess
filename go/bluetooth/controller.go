@@ -34,7 +34,7 @@ func StartController(ctx context.Context) error {
 
 	adapter, err := api.GetAdapter("hci0")
 	if err != nil {
-		return errors.Wrapf(err, "couldn't find adapter %v", "hci0")
+		return errors.Wrapf(err, "couldn't find adapter %s", "hci0")
 	}
 
 	if err := adapter.SetProperty("Powered", true); err != nil {

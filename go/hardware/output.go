@@ -73,7 +73,7 @@ func (h *Hardware) move(x1, y1, x2, y2 float64, color chess.Color, rotate bool) 
 		return err
 	}
 
-	log.Printf("move %v piece (%v, %v) -> (%v, %v)", color, x1, y1, x2, y2)
+	log.Printf("move %v piece (%f, %f) -> (%f, %f)", color, x1, y1, x2, y2)
 	if rotate {
 		angle := 0.0
 		if color == chess.White {
@@ -81,7 +81,7 @@ func (h *Hardware) move(x1, y1, x2, y2 float64, color chess.Color, rotate bool) 
 		} else {
 			angle = math.Atan2(x1-x2, y1-y2) / math.Pi * 180
 		}
-		log.Printf("angle: %v", angle)
+		log.Printf("angle: %f", angle)
 		if err := h.coil.Rotate(int(angle)); err != nil {
 			return err
 		}

@@ -3,8 +3,8 @@ package voice
 import "github.com/notnil/chess"
 
 var moveString = map[string]string{
-	"sl-SI": "%s na %s",
-	"en-US": "%s to %s",
+	"sl-SI": "na",
+	"en-US": "to",
 }
 var piecesStrings = map[string]map[chess.Piece][]string{
 	"sl-SI": map[chess.Piece][]string{

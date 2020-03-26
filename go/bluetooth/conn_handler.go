@@ -128,7 +128,7 @@ func (h *connHandler) handleRequest(request *bluetoothpb.Request) error {
 		} else {
 			networkID, err = strconv.Atoi(network.NetworkID())
 			if err != nil {
-				return errors.Wrapf(err, "could not parse network id '%v'", network.NetworkID())
+				return errors.Wrapf(err, "could not parse network id '%s'", network.NetworkID())
 			}
 		}
 		if err := h.server.Wpa.Conn.SetNetwork(networkID, "ssid", request.GetWifiSsid()); err != nil {
@@ -149,10 +149,10 @@ func (h *connHandler) handleRequest(request *bluetoothpb.Request) error {
 		}
 		networkID, err := strconv.Atoi(network.NetworkID())
 		if err != nil {
-			return errors.Wrapf(err, "could not parse network id '%v'", network.NetworkID())
+			return errors.Wrapf(err, "could not parse network id '%s'", network.NetworkID())
 		}
 		if err := h.server.Wpa.Conn.SelectNetwork(networkID); err != nil {
-			return errors.Wrapf(err, "could not connect to %v", network.SSID())
+			return errors.Wrapf(err, "could not connect to %s", network.SSID())
 		}
 	case bluetoothpb.Request_FORGET_WIFI:
 		network, err := h.server.getNetwork(request.GetWifiSsid())
@@ -161,7 +161,7 @@ func (h *connHandler) handleRequest(request *bluetoothpb.Request) error {
 		}
 		networkID, err := strconv.Atoi(network.NetworkID())
 		if err != nil {
-			return errors.Wrapf(err, "could not parse network id '%v'", network.NetworkID())
+			return errors.Wrapf(err, "could not parse network id '%s'", network.NetworkID())
 		}
 		if err := h.server.Wpa.Conn.RemoveNetwork(networkID); err != nil {
 			return errors.Wrap(err, "could not remove network")

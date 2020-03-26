@@ -3,7 +3,6 @@ package bluetooth
 import (
 	"encoding/binary"
 	"io"
-	"log"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
@@ -16,7 +15,7 @@ func readProto(r io.Reader, msg proto.Message) error {
 	}
 	data := make([]byte, length)
 	if _, err := io.ReadFull(r, data); err != nil {
-		return errors.Wrapf(err, "couldn't read msg data of length %v", length)
+		return errors.Wrapf(err, "couldn't read msg data of length %d", length)
 	}
 	if err := proto.Unmarshal(data, msg); err != nil {
 		return errors.Wrap(err, "couldn't unmarshal msg")
@@ -33,8 +32,6 @@ func writeProto(w io.Writer, msg proto.Message) error {
 	if err := binary.Write(w, binary.BigEndian, uint64(len(data))); err != nil {
 		return errors.Wrap(err, "could not write data length")
 	}
-
-	log.Printf("Send data of %v", len(data))
 
 	_, err = w.Write(data)
 	if err != nil {

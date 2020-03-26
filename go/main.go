@@ -5,7 +5,9 @@ import (
 	"flag"
 	"log"
 	"os"
+	"runtime"
 	"runtime/pprof"
+	"time"
 
 	"github.com/Zemanta/gracefulshutdown"
 	"github.com/Zemanta/gracefulshutdown/shutdownmanagers/posixsignal"
@@ -15,10 +17,17 @@ import (
 	"github.com/matematik7/dichess/go/hardware"
 	"github.com/matematik7/dichess/go/voice"
 	"github.com/matematik7/dichess/go/wpa"
+	"github.com/tj/go-update"
+	"github.com/tj/go-update/stores/github"
 )
 
-var noHardware = flag.Bool("no_hardware", false, "disable hardware init and use fake")
-var cpuprofile = flag.Bool("cpuprofile", false, "write cpu profile to file")
+const currentVersion = "0.1.0"
+
+var (
+	noHardware = flag.Bool("no_hardware", false, "disable hardware init and use fake")
+	noUpdate   = flag.Bool("no_update", false, "disable updates")
+	cpuprofile = flag.Bool("cpuprofile", false, "write cpu profile to file")
+)
 
 const btChannel = 1
 
@@ -28,13 +37,23 @@ func main() {
 
 	flag.Parse()
 
+	if !*noUpdate {
+		go func() {
+			if err := doUpdate(currentVersion); err != nil {
+				log.Println(err)
+			}
+		}()
+	}
+
 	if *cpuprofile {
 		f, err := os.Create("cpu.pprof")
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer f.Close()
-		pprof.StartCPUProfile(f)
+		if err := pprof.StartCPUProfile(f); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	hw := hardware.New()
@@ -107,4 +126,48 @@ func main() {
 	}
 
 	log.Fatal(server.Serve())
+}
+
+// Installs the new binary, will run on next restart
+func doUpdate(current string) error {
+	log.Printf("Current version %s", current)
+	for {
+		manager := &update.Manager{
+			Store: &github.Store{
+				Owner:   "matematik7",
+				Repo:    "dichess",
+				Version: current,
+			},
+			Command: "dichess",
+		}
+
+		latest, err := manager.LatestReleases()
+		if err != nil {
+			time.Sleep(time.Second)
+			continue
+		}
+
+		if len(latest) == 0 {
+			log.Println("No updates.")
+			return nil
+		}
+
+		log.Printf("Updating to %s", latest[0].Version)
+
+		asset := latest[0].FindTarball(runtime.GOOS, runtime.GOARCH)
+		if asset == nil {
+			log.Println("No binary for your system.")
+		}
+
+		path, err := asset.Download()
+		if err != nil {
+			return err
+		}
+
+		if err := manager.Install(path); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
