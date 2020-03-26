@@ -4,5 +4,6 @@ bin
 chessboard
 *.proto
 go
-linux*
+dichess
+*.tar.gz
 *.pprof

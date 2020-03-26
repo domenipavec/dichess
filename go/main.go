@@ -21,7 +21,7 @@ import (
 	"github.com/tj/go-update/stores/github"
 )
 
-const currentVersion = "0.1.1"
+const currentVersion = "0.1.2"
 
 var (
 	noHardware = flag.Bool("no_hardware", false, "disable hardware init and use fake")
@@ -157,6 +157,7 @@ func doUpdate(current string) error {
 		asset := latest[0].FindTarball(runtime.GOOS, runtime.GOARCH)
 		if asset == nil {
 			log.Println("No binary for your system.")
+			return nil
 		}
 
 		path, err := asset.Download()
