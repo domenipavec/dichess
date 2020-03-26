@@ -169,6 +169,8 @@ func doUpdate(current string) error {
 			return err
 		}
 
+		log.Printf("Updated to %s", latest[0].Version)
+
 		return nil
 	}
 
