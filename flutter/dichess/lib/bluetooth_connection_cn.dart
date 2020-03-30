@@ -145,4 +145,10 @@ class BluetoothConnectionCN extends ChangeNotifier {
     request.type = Request_Type.NEW_GAME;
     _send(request);
   }
+
+  void getSettings() {
+    var request = Request();
+    request.type = Request_Type.GET_SETTINGS;
+    _send(request);
+  }
 }

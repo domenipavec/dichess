@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/matematik7/dichess/go/bluetoothpb"
 	"github.com/matematik7/dichess/go/chess_state"
 	"github.com/notnil/chess"
 	"github.com/pkg/errors"
@@ -18,20 +19,21 @@ import (
 )
 
 func (v *Voice) MakeMove(ctx context.Context, stateSender chess_state.StateSender, game *chess.Game) (*chess_state.Move, error) {
-	phrases := v.generatePhrases(game)
 	if !v.Settings.GetSettings().VoiceRecognition {
 		<-ctx.Done()
 		return nil, ctx.Err()
 	}
+	lang := v.Settings.GetSettings().Language
+	phrases := v.generatePhrases(game, lang)
 
 	for {
-		result, err := v.recognize(ctx, phrases)
+		result, err := v.recognize(ctx, phrases, languages[lang])
 		if err != nil {
 			return nil, err
 		}
 		log.Printf("result: %v", result)
 
-		moves, err := v.parseMove(game, result)
+		moves, err := v.parseMove(game, result, lang)
 		if err != nil {
 			return nil, err
 		}
@@ -53,7 +55,7 @@ func (v *Voice) MakeMove(ctx context.Context, stateSender chess_state.StateSende
 				}
 				construct += moves[i].S1().String()
 			}
-			prompt := fmt.Sprintf("%s "+translations[v.Language]["ambiguous"]+" %s?", result, construct)
+			prompt := fmt.Sprintf("%s "+translations[bluetoothpb.Settings_ENGLISH]["ambiguous"]+" %s?", result, construct)
 			stateSender.StateSend(prompt)
 
 			if err := v.Say(prompt, texttospeechpb.SsmlVoiceGender_NEUTRAL); err != nil {
@@ -63,9 +65,9 @@ func (v *Voice) MakeMove(ctx context.Context, stateSender chess_state.StateSende
 			fields := make([]string, 2*len(moves))
 			for i, move := range moves {
 				fields[i] = move.S1().String()
-				fields[i] = translations[v.Language]["from"] + " " + move.S1().String()
+				fields[i] = translations[lang]["from"] + " " + move.S1().String()
 			}
-			from, err := v.recognize(ctx, fields)
+			from, err := v.recognize(ctx, fields, languages[lang])
 			if err != nil {
 				return nil, err
 			}
@@ -86,12 +88,12 @@ func (v *Voice) MakeMove(ctx context.Context, stateSender chess_state.StateSende
 		return &chess_state.Move{
 			Move:       moves[0],
 			ShouldMove: true,
-			ShouldSay:  false,
+			ShouldSay:  true,
 		}, nil
 	}
 }
 
-func (v *Voice) recognize(ctx context.Context, phrases []string) (string, error) {
+func (v *Voice) recognize(ctx context.Context, phrases []string, language string) (string, error) {
 	resultChan := make(chan string, 1)
 	for {
 		ctx := ctx
@@ -147,7 +149,7 @@ func (v *Voice) recognize(ctx context.Context, phrases []string) (string, error)
 						Encoding:        speechpb.RecognitionConfig_LINEAR16,
 						SampleRateHertz: 44100,
 						MaxAlternatives: 5,
-						LanguageCode:    v.Language,
+						LanguageCode:    language,
 						SpeechContexts: []*speechpb.SpeechContext{
 							&speechpb.SpeechContext{
 								Phrases: phrases,
@@ -224,7 +226,7 @@ func voiceSendLoop(ctx context.Context, recognize speechpb.Speech_StreamingRecog
 	}
 }
 
-func (v *Voice) generatePhrases(game *chess.Game) []string {
+func (v *Voice) generatePhrases(game *chess.Game, lang bluetoothpb.Settings_Language) []string {
 	phraseMap := make(map[string]bool)
 
 	for _, move := range game.ValidMoves() {
@@ -237,8 +239,8 @@ func (v *Voice) generatePhrases(game *chess.Game) []string {
 		if piece > chess.WhitePawn {
 			piece -= chess.WhitePawn
 		}
-		for _, pieceStr := range piecesStrings[v.Language][piece] {
-			current := fmt.Sprintf("%s %s %s", pieceStr, translations[v.Language]["to"], move.S2().String())
+		for _, pieceStr := range piecesStrings[lang][piece] {
+			current := fmt.Sprintf("%s %s %s", pieceStr, translations[lang]["to"], move.S2().String())
 			phraseMap[current] = true
 		}
 	}
@@ -250,14 +252,14 @@ func (v *Voice) generatePhrases(game *chess.Game) []string {
 	return phrases
 }
 
-func (v *Voice) parseMove(game *chess.Game, phrase string) ([]*chess.Move, error) {
+func (v *Voice) parseMove(game *chess.Game, phrase string, lang bluetoothpb.Settings_Language) ([]*chess.Move, error) {
 	var pieceStr, squareStr string
-	if _, err := fmt.Sscanf(phrase, "%s "+translations[v.Language]["to"]+" %s", &pieceStr, &squareStr); err != nil {
+	if _, err := fmt.Sscanf(phrase, "%s "+translations[lang]["to"]+" %s", &pieceStr, &squareStr); err != nil {
 		return nil, errors.Wrapf(err, "couldn't parse phrase %v", phrase)
 	}
 
 	piece := chess.NoPiece
-	for searchPiece, searchStrings := range piecesStrings[v.Language] {
+	for searchPiece, searchStrings := range piecesStrings[lang] {
 		for _, searchString := range searchStrings {
 			if searchString == pieceStr {
 				piece = searchPiece

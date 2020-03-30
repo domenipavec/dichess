@@ -10,12 +10,24 @@ import (
 )
 
 type UciPlayer struct {
-	engine *uci.Engine
-
-	timeLimit int64
+	settings bluetoothpb.SettingsProvider
 }
 
-func NewUciPlayer(cs *bluetoothpb.Settings_ComputerSettings) (*UciPlayer, error) {
+func NewUciPlayer(settings bluetoothpb.SettingsProvider) (*UciPlayer, error) {
+
+	return &UciPlayer{settings}, nil
+}
+
+type result struct {
+	bestMove string
+	err      error
+}
+
+func (p *UciPlayer) MakeMove(ctx context.Context, stateSender StateSender, game *chess.Game) (*Move, error) {
+	stateSender.StateSend("Computer's turn. Thinking...")
+
+	cs := p.settings.GetSettings().ComputerSettings
+
 	engine, err := uci.NewEngine("/home/pi/stockfish")
 	if err != nil {
 		return nil, err
@@ -30,23 +42,14 @@ func NewUciPlayer(cs *bluetoothpb.Settings_ComputerSettings) (*UciPlayer, error)
 		return nil, errors.Wrap(err, "could not set elo")
 	}
 
-	return &UciPlayer{engine, int64(cs.TimeLimitMs)}, nil
-}
-
-type result struct {
-	bestMove string
-	err      error
-}
-
-func (p *UciPlayer) MakeMove(ctx context.Context, stateSender StateSender, game *chess.Game) (*Move, error) {
-	stateSender.StateSend("Computer's turn. Thinking...")
-	if err := p.engine.SetFEN(game.FEN()); err != nil {
+	if err := engine.SetFEN(game.FEN()); err != nil {
 		return nil, err
 	}
 
 	resultChan := make(chan result)
 	go func() {
-		r, err := p.engine.Go(0, "", p.timeLimit)
+		defer engine.Close()
+		r, err := engine.Go(0, "", int64(cs.TimeLimitMs))
 		if err != nil {
 			resultChan <- result{err: err}
 		}
@@ -74,6 +77,5 @@ func (p *UciPlayer) MakeMove(ctx context.Context, stateSender StateSender, game 
 }
 
 func (p *UciPlayer) Close() error {
-	p.engine.Close()
 	return nil
 }

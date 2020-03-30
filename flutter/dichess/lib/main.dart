@@ -8,6 +8,7 @@ import 'screens/bluetooth_off.dart';
 import 'screens/device_screen.dart';
 import 'screens/find_devices.dart';
 import 'bluetooth_state_cn.dart';
+import 'screens/settings_screen.dart';
 import 'screens/wifi_screen.dart';
 
 
@@ -35,7 +36,8 @@ class DIChessApp extends StatelessWidget {
             child: MaterialApp(
                 routes: {
                   "/": (BuildContext context) => DeviceScreen(),
-                  "/settings": (BuildContext context) => WifiScreen(),
+                  "/wifi": (BuildContext context) => WifiScreen(),
+                  "/settings": (BuildContext context) => SettingsScreen(),
                 }
             ),
           );

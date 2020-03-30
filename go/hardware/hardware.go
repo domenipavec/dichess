@@ -1,6 +1,7 @@
 package hardware
 
 import (
+	"github.com/matematik7/dichess/go/bluetoothpb"
 	"github.com/notnil/chess"
 	"github.com/pkg/errors"
 	"periph.io/x/periph/conn/gpio"
@@ -33,6 +34,8 @@ type Coil interface {
 }
 
 type Hardware struct {
+	Settings bluetoothpb.SettingsProvider
+
 	initialized bool
 	fake        bool
 

@@ -18,8 +18,7 @@ type GameStarter interface {
 type Controller struct {
 	Inputs []HumanInput
 
-	HardwareGameStarter GameStarter
-	VoiceGameStarter    GameStarter
+	GameStarters []GameStarter
 
 	Observers    *Observers
 	StateSenders *StateSenders
@@ -83,7 +82,7 @@ func (c *Controller) createPlayer(s *bluetoothpb.Settings, typ bluetoothpb.Setti
 			Inputs: c.Inputs,
 		}, nil
 	case bluetoothpb.Settings_COMPUTER:
-		return NewUciPlayer(s.ComputerSettings)
+		return NewUciPlayer(c)
 	default:
 		return nil, errors.Errorf("invalid player type: %v", typ)
 	}
@@ -95,17 +94,13 @@ func (c *Controller) StartGame() error {
 		return errors.New("game in progress")
 	}
 
-	if err := c.HardwareGameStarter.StartGame(c.StateSenders); err != nil {
-		return err
-	}
-
-	settings := c.GetSettings()
-
-	if c.VoiceGameStarter != nil && settings.Sound {
-		if err := c.VoiceGameStarter.StartGame(c.StateSenders); err != nil {
+	for _, gameStarter := range c.GameStarters {
+		if err := gameStarter.StartGame(c.StateSenders); err != nil {
 			return err
 		}
 	}
+
+	settings := c.GetSettings()
 
 	player1, err := c.createPlayer(settings, settings.Player1)
 	if err != nil {

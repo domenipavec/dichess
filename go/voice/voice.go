@@ -14,7 +14,6 @@ type Voice struct {
 
 	speechClient *speech.Client
 	ttsClient    *texttospeech.Client
-	Language     string
 }
 
 func New(ctx context.Context) (*Voice, error) {
@@ -30,8 +29,5 @@ func New(ctx context.Context) (*Voice, error) {
 	return &Voice{
 		speechClient: speechClient,
 		ttsClient:    ttsClient,
-
-		// Language: "sl-SI",
-		Language: "en-US",
 	}, nil
 }

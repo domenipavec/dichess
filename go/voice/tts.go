@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/matematik7/dichess/go/bluetoothpb"
 	"github.com/matematik7/dichess/go/chess_state"
 	"github.com/notnil/chess"
 	"github.com/pkg/errors"
@@ -17,6 +18,11 @@ import (
 
 func (v *Voice) Update(_ context.Context, stateSender chess_state.StateSender, game *chess_state.Game, move *chess_state.Move) error {
 	if len(game.Game.Moves()) < 1 {
+		if v.Settings.GetSettings().Intro {
+			if err := v.intro(stateSender); err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 	if !move.ShouldSay {
@@ -37,7 +43,8 @@ func (v *Voice) Update(_ context.Context, stateSender chess_state.StateSender, g
 		piece -= chess.WhitePawn
 	}
 
-	txt := fmt.Sprintf("%s %s %s", piecesStrings[v.Language][piece][0], translations[v.Language]["to"], gameMove.S2().String())
+	lang := bluetoothpb.Settings_ENGLISH
+	txt := fmt.Sprintf("%s %s %s", piecesStrings[lang][piece][0], translations[lang]["to"], gameMove.S2().String())
 	if err := v.Say(txt, texttospeechpb.SsmlVoiceGender_NEUTRAL); err != nil {
 		return err
 	}
@@ -49,7 +56,7 @@ func (v *Voice) Update(_ context.Context, stateSender chess_state.StateSender, g
 	return nil
 }
 
-func (v *Voice) StartGame(stateSender chess_state.StateSender) error {
+func (v *Voice) intro(stateSender chess_state.StateSender) error {
 	stateSender.StateSend("Game starting.")
 
 	time.Sleep(time.Second)
@@ -66,6 +73,7 @@ func (v *Voice) StartGame(stateSender chess_state.StateSender) error {
 }
 
 func (v *Voice) Say(txt string, gender texttospeechpb.SsmlVoiceGender) error {
+	log.Println("Saying: ", txt)
 	if !v.Settings.GetSettings().Sound {
 		return nil
 	}
@@ -77,13 +85,13 @@ func (v *Voice) Say(txt string, gender texttospeechpb.SsmlVoiceGender) error {
 		// Build the voice request, select the language code ("en-US") and the SSML
 		// voice gender ("neutral").
 		Voice: &texttospeechpb.VoiceSelectionParams{
-			LanguageCode: v.Language,
+			LanguageCode: "en-US",
 			SsmlGender:   gender,
 		},
 		// Select the type of audio file you want returned.
 		AudioConfig: &texttospeechpb.AudioConfig{
 			AudioEncoding: texttospeechpb.AudioEncoding_LINEAR16,
-			SpeakingRate:  0.5,
+			SpeakingRate:  0.7,
 		},
 	}
 

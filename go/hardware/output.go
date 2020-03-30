@@ -124,6 +124,9 @@ func (h *Hardware) move(x1, y1, x2, y2 float64, color chess.Color, rotate bool) 
 }
 
 func (h *Hardware) Update(ctx context.Context, stateSender chess_state.StateSender, game *chess_state.Game, move *chess_state.Move) error {
+	if !h.Settings.GetSettings().AutoMove {
+		return nil
+	}
 	stateSender.StateSend("Moving pieces.")
 	if h.fake {
 		return nil

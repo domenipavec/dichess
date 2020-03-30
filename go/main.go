@@ -91,6 +91,7 @@ func main() {
 	server := bluetooth.NewServer(btChannel, controller, wpa)
 	controller.Inputs = append(controller.Inputs, server)
 
+	hw.Settings = controller
 	if voice != nil {
 		voice.Settings = controller
 	}
@@ -117,11 +118,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	controller.HardwareGameStarter = hw
+	controller.GameStarters = append(controller.GameStarters, hw)
 	controller.Inputs = append(controller.Inputs, hw)
 	if voice != nil {
 		controller.Inputs = append(controller.Inputs, voice)
-		controller.VoiceGameStarter = voice
 	}
 	if err := controller.Start(); err != nil {
 		log.Fatal(err)
