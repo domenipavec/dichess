@@ -84,6 +84,7 @@ class Settings extends $pb.GeneratedMessage {
     ..e<Settings_PlayerType>(6, 'player1', $pb.PbFieldType.OE, defaultOrMaker: Settings_PlayerType.HUMAN, valueOf: Settings_PlayerType.valueOf, enumValues: Settings_PlayerType.values)
     ..e<Settings_PlayerType>(7, 'player2', $pb.PbFieldType.OE, defaultOrMaker: Settings_PlayerType.HUMAN, valueOf: Settings_PlayerType.valueOf, enumValues: Settings_PlayerType.values)
     ..aOM<Settings_ComputerSettings>(8, 'computerSettings', protoName: 'computerSettings', subBuilder: Settings_ComputerSettings.create)
+    ..aOB(9, 'intro')
     ..hasRequiredFields = false
   ;
 
@@ -175,6 +176,15 @@ class Settings extends $pb.GeneratedMessage {
   void clearComputerSettings() => clearField(8);
   @$pb.TagNumber(8)
   Settings_ComputerSettings ensureComputerSettings() => $_ensure(7);
+
+  @$pb.TagNumber(9)
+  $core.bool get intro => $_getBF(8);
+  @$pb.TagNumber(9)
+  set intro($core.bool v) { $_setBool(8, v); }
+  @$pb.TagNumber(9)
+  $core.bool hasIntro() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearIntro() => clearField(9);
 }
 
 class Response_WifiNetwork extends $pb.GeneratedMessage {

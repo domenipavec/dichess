@@ -16,6 +16,7 @@ const Settings$json = const {
     const {'1': 'player1', '3': 6, '4': 1, '5': 14, '6': '.bluetoothpb.Settings.PlayerType', '10': 'player1'},
     const {'1': 'player2', '3': 7, '4': 1, '5': 14, '6': '.bluetoothpb.Settings.PlayerType', '10': 'player2'},
     const {'1': 'computerSettings', '3': 8, '4': 1, '5': 11, '6': '.bluetoothpb.Settings.ComputerSettings', '10': 'computerSettings'},
+    const {'1': 'intro', '3': 9, '4': 1, '5': 8, '10': 'intro'},
   ],
   '3': const [Settings_ComputerSettings$json],
   '4': const [Settings_Language$json, Settings_PlayerType$json],
@@ -119,6 +120,7 @@ const Request_Type$json = const {
     const {'1': 'UNDO_MOVE', '2': 7},
     const {'1': 'MOVE', '2': 8},
     const {'1': 'NEW_GAME', '2': 9},
+    const {'1': 'GET_SETTINGS', '2': 10},
   ],
 };
 

@@ -25,6 +25,7 @@ func loadSettings() (*bluetoothpb.Settings, error) {
 			LimitStrength: false,
 			Elo:           1350,
 		},
+		Intro: true,
 	}
 	data, err := ioutil.ReadFile("settings.proto")
 	if err != nil {

@@ -29,6 +29,8 @@ message Settings {
 		int32 elo = 4;
 	}
 	ComputerSettings computerSettings = 8;
+
+	bool intro = 9;
 }
 
 message Response {
@@ -83,6 +85,8 @@ message Request {
 		UNDO_MOVE = 7;
 		MOVE = 8;
 		NEW_GAME = 9;
+
+		GET_SETTINGS = 10;
 	}
 	Type type = 1;
 
