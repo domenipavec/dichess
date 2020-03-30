@@ -204,6 +204,10 @@ func (h *connHandler) handleRequest(request *bluetoothpb.Request) error {
 		if err := h.sendUpdate(nil, nil, h.server.Controller.GetSettings()); err != nil {
 			return err
 		}
+	case bluetoothpb.Request_GET_SETTINGS:
+		if err := h.sendUpdate(h.server.Controller.GetGame(), nil, h.server.Controller.GetSettings()); err != nil {
+			return err
+		}
 	}
 
 	return nil
