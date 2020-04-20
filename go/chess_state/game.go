@@ -86,7 +86,7 @@ func (g *Game) Play(ctx context.Context) error {
 	g.Observers.Update(ctx, g.StateSenders, g, move)
 	g.StateSenders.StateSend(g.Game.Outcome().String())
 
-	// handle outcome
+	<-ctx.Done()
 
 	return nil
 }

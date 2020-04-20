@@ -115,13 +115,6 @@ func (c *Controller) StartGame() error {
 		player1, player2 = player2, player1
 	}
 
-	// if settings.AutoMove && c.HardwareObserver != nil {
-	//     observers.Add(c.HardwareObserver)
-	// }
-	// if settings.Sound && c.VoiceObserver != nil {
-	//     observers.Add(c.VoiceObserver)
-	// }
-
 	c.game = NewGame(player1, player2, c.Observers, c.StateSenders)
 	ctx, cancel := context.WithCancel(context.Background())
 	c.cancel = cancel

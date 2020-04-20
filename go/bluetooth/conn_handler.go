@@ -45,6 +45,13 @@ func (h *connHandler) sendUpdate(game *chess_state.Game, move *chess_state.Move,
 				}
 			}
 		}
+
+		notation := chess.AlgebraicNotation{}
+		positions := game.Game.Positions()
+		for i, move := range game.Game.Moves() {
+			msg.Moves = append(msg.Moves, notation.Encode(positions[i], move))
+		}
+
 		canMakeMove := false
 		if game.Game.Position().Turn() == chess.White {
 			if _, ok := game.Players[0].(*chess_state.HumanPlayer); ok {
@@ -55,16 +62,19 @@ func (h *connHandler) sendUpdate(game *chess_state.Game, move *chess_state.Move,
 				canMakeMove = true
 			}
 		}
+
+		if game.Game.Outcome() != chess.NoOutcome {
+			canMakeMove = false
+			if len(msg.Moves)%2 == 1 {
+				msg.Moves = append(msg.Moves, "")
+			}
+			msg.Moves = append(msg.Moves, game.Game.Outcome().String())
+		}
+
 		msg.ChessBoard = &bluetoothpb.Response_ChessBoard{
 			Fen:         game.Game.FEN(),
 			Rotate:      rotate,
 			CanMakeMove: canMakeMove,
-		}
-
-		notation := chess.AlgebraicNotation{}
-		positions := game.Game.Positions()
-		for i, move := range game.Game.Moves() {
-			msg.Moves = append(msg.Moves, notation.Encode(positions[i], move))
 		}
 	}
 

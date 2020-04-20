@@ -48,7 +48,11 @@ func (v *Voice) Update(_ context.Context, stateSender chess_state.StateSender, g
 	if err := v.Say(txt, texttospeechpb.SsmlVoiceGender_NEUTRAL); err != nil {
 		return err
 	}
-	if gameMove.HasTag(chess.Check) {
+	if game.Game.Outcome() != chess.NoOutcome {
+		if err := v.Say(game.Game.Method().String(), texttospeechpb.SsmlVoiceGender_NEUTRAL); err != nil {
+			return err
+		}
+	} else if gameMove.HasTag(chess.Check) {
 		if err := v.Say("check!", texttospeechpb.SsmlVoiceGender_NEUTRAL); err != nil {
 			return err
 		}
@@ -60,6 +64,7 @@ func (v *Voice) intro(stateSender chess_state.StateSender) error {
 	stateSender.StateSend("Game starting.")
 
 	time.Sleep(time.Second)
+	stateSender.StateSend("Game starting.")
 	if err := v.Say("What happens now?", texttospeechpb.SsmlVoiceGender_FEMALE); err != nil {
 		return err
 	}
