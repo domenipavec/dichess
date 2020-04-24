@@ -136,14 +136,32 @@ func (h *Hardware) InitializeFake() error {
 	return h.Initialize()
 }
 
-//
 // func (h *Hardware) Test() {
-//     h.coil.SetPwm(190)
+//     pwm, _ := strconv.Atoi(os.Args[1])
+//     h.coil.SetPwm(uint8(pwm))
+//     defer h.coil.Off()
+//     defer h.xAxis.SetCurrent(10)
+//     defer h.yAxis.SetCurrent(10)
+//
+//     h.xAxis.SetCurrent(77)
+//     h.yAxis.SetCurrent(77)
+//     h.Do(
+//         func() error { return h.xAxis.GoTo(0, 40) },
+//         func() error { return h.yAxis.GoTo(0, 40) },
+//     )
+//     h.xAxis.SetCurrent(10)
+//     h.yAxis.SetCurrent(10)
 //
 //     for {
-//         h.coil.On()
+//         h.coil.Off()
+//         h.coil.Rotate(0)
 //         time.Sleep(time.Second)
+//         h.coil.On()
+//         h.coil.Rotate(120)
+//         h.coil.Rotate(90)
 //         h.coil.Off()
 //         time.Sleep(time.Second)
+//         // h.coil.Off()
+//         // time.Sleep(time.Second)
 //     }
 // }

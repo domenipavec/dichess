@@ -136,7 +136,7 @@ func (c *RealCoil) Off() error {
 }
 
 func (c *RealCoil) Rotate(degrees int) error {
-	return errors.Wrap(c.Go(int16(degrees)*950/90+950), "couldn't rotate coil")
+	return errors.Wrap(c.Go(int16(degrees*4096/360)), "couldn't rotate coil")
 }
 
 type RealAxis struct {

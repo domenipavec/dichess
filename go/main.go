@@ -31,6 +31,10 @@ var (
 
 const btChannel = 1
 
+type Tester interface {
+	Test()
+}
+
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -65,6 +69,10 @@ func main() {
 		if err := hw.InitializeReal(); err != nil {
 			log.Fatal(err)
 		}
+	}
+	var hwint interface{} = hw
+	if hwtest, ok := hwint.(Tester); ok {
+		hwtest.Test()
 	}
 
 	observers := &chess_state.Observers{}
