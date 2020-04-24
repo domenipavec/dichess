@@ -24,6 +24,10 @@ func (c *FakeCoil) Rotate(v int) error {
 	return nil
 }
 
+func (c *FakeCoil) SetPwm(v uint8) error {
+	return nil
+}
+
 type FakeAxis struct{}
 
 func (a *FakeAxis) Initialize() error {

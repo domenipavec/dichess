@@ -16,7 +16,7 @@ const (
 	PinHigh
 	PinEnabled
 	PinHome
-	PinNotUsed
+	PinPwm
 	Pin2
 )
 
@@ -80,6 +80,13 @@ func (d *MotorDriver) SetPin(flags uint8) error {
 	return nil
 }
 
+func (d *MotorDriver) SetPwm(value uint8) error {
+	if err := d.Tx([]byte{0x06, value}, nil); err != nil {
+		return errors.Wrap(err, "couldn't set pwm")
+	}
+	return nil
+}
+
 func (d *MotorDriver) Go(dest int16) error {
 	var buf bytes.Buffer
 	// write command, cannot fail
@@ -121,7 +128,7 @@ func (c *RealCoil) Initialize() error {
 }
 
 func (c *RealCoil) On() error {
-	return errors.Wrap(c.SetPin(PinOutput|PinHigh), "couldn't turn coil on")
+	return errors.Wrap(c.SetPin(PinOutput|PinPwm), "couldn't turn coil on")
 }
 
 func (c *RealCoil) Off() error {

@@ -30,6 +30,7 @@ type Coil interface {
 	Initializer
 	On() error
 	Off() error
+	SetPwm(uint8) error
 	Rotate(int) error
 }
 
@@ -134,3 +135,15 @@ func (h *Hardware) InitializeFake() error {
 
 	return h.Initialize()
 }
+
+//
+// func (h *Hardware) Test() {
+//     h.coil.SetPwm(190)
+//
+//     for {
+//         h.coil.On()
+//         time.Sleep(time.Second)
+//         h.coil.Off()
+//         time.Sleep(time.Second)
+//     }
+// }
