@@ -62,6 +62,8 @@ func (h *Hardware) checkAndMove(position *chess.Position, x1, y1, x2, y2 float64
 }
 
 func (h *Hardware) move(x1, y1, x2, y2 float64, piece chess.Piece, rotate bool) error {
+	var angleInt int
+
 	if err := h.Do(
 		func() error { return h.xAxis.GoTo(x1, 40) },
 		func() error { return h.yAxis.GoTo(y1, 40) },
@@ -81,11 +83,21 @@ func (h *Hardware) move(x1, y1, x2, y2 float64, piece chess.Piece, rotate bool) 
 		} else {
 			angle = math.Atan2(x1-x2, y1-y2) / math.Pi * 180
 		}
+		angleInt = int(angle)
+		angleOverdrive := angleInt
+		if angleOverdrive > 0 {
+			angleOverdrive += 20
+		} else {
+			angleOverdrive -= 20
+		}
 		log.Printf("angle: %f", angle)
 		if err := h.coil.SetPwm(rotateStrength[piece.Type()]); err != nil {
 			return err
 		}
-		if err := h.coil.Rotate(int(angle)); err != nil {
+		if err := h.coil.Rotate(angleOverdrive); err != nil {
+			return err
+		}
+		if err := h.coil.Rotate(angleInt); err != nil {
 			return err
 		}
 		if err := h.coil.SetPwm(forwardStrength[piece.Type()]); err != nil {
@@ -113,6 +125,7 @@ func (h *Hardware) move(x1, y1, x2, y2 float64, piece chess.Piece, rotate bool) 
 			vx = 255
 		}
 	}
+	log.Printf("Velocity: %v, %v", vx, vy)
 	if err := h.Do(
 		func() error { return h.xAxis.GoTo(x2, uint8(vx)) },
 		func() error { return h.yAxis.GoTo(y2, uint8(vy)) },
@@ -122,6 +135,15 @@ func (h *Hardware) move(x1, y1, x2, y2 float64, piece chess.Piece, rotate bool) 
 
 	if rotate {
 		if err := h.coil.SetPwm(rotateStrength[piece.Type()]); err != nil {
+			return err
+		}
+		overdriveZero := 0
+		if angleInt > 0 {
+			overdriveZero = -20
+		} else if angleInt < 0 {
+			overdriveZero = 20
+		}
+		if err := h.coil.Rotate(overdriveZero); err != nil {
 			return err
 		}
 		if err := h.coil.Rotate(0); err != nil {
@@ -190,24 +212,38 @@ func (h *Hardware) Update(ctx context.Context, stateSender chess_state.StateSend
 	y2 := float64(gameMove.S2().Rank())
 
 	isDiagonal := math.Abs(x1-x2) > 0 && math.Abs(y1-y2) > 0
-	if piece == chess.WhiteKnight || piece == chess.BlackKnight || (isDiagonal && (piece == chess.WhiteQueen || piece == chess.BlackQueen)) {
+	if piece == chess.WhiteKnight || piece == chess.BlackKnight {
+		dx := (x2 - x1) / math.Abs(x2-x1)
+		dy := (y2 - y1) / math.Abs(y2-y1)
 		if math.Abs(y2-y1) == 2 {
-			if err := h.checkAndMove(gamePosition, x1, y1+(y2-y1)*0.5, x1-(x2-x1)*0.5, y1+(y2-y1)*0.5); err != nil {
+			if err := h.checkAndMove(gamePosition, x1, y1+dy, x1-0.35*dx, y1+dy+0.25*dy); err != nil {
 				return err
 			}
-			if err := h.checkAndMove(gamePosition, x2, y1+(y2-y1)*0.5, x2+(x2-x1)*0.5, y1+(y2-y1)*0.5); err != nil {
+			if err := h.checkAndMove(gamePosition, x1, y1+2*dy, x1-0.35*dx, y1+2*dy+0.25*dy); err != nil {
+				return err
+			}
+			if err := h.checkAndMove(gamePosition, x2, y1, x2+0.35*dx, y1-0.25*dy); err != nil {
+				return err
+			}
+			if err := h.checkAndMove(gamePosition, x2, y1+dy, x2+0.35*dx, y1+dy-0.25*dy); err != nil {
 				return err
 			}
 		} else {
-			if err := h.checkAndMove(gamePosition, x1+(x2-x1)*0.5, y1, x1+(x2-x1)*0.5, y1-(y2-y1)*0.5); err != nil {
+			if err := h.checkAndMove(gamePosition, x1+dx, y1, x1+dx+0.25*dx, y1-0.35*dy); err != nil {
 				return err
 			}
-			if err := h.checkAndMove(gamePosition, x1+(x2-x1)*0.5, y2, x1+(x2-x1)*0.5, y2+(y2-y1)*0.5); err != nil {
+			if err := h.checkAndMove(gamePosition, x1+2*dx, y1, x1+2*dx+0.25*dx, y1-0.35*dy); err != nil {
+				return err
+			}
+			if err := h.checkAndMove(gamePosition, x1, y2, x1-0.25*dx, y2+0.35*dy); err != nil {
+				return err
+			}
+			if err := h.checkAndMove(gamePosition, x1+dx, y2, x1+dx-0.25*dx, y2+0.35*dy); err != nil {
 				return err
 			}
 		}
 	}
-	if piece == chess.WhiteBishop || piece == chess.BlackBishop {
+	if piece == chess.WhiteBishop || piece == chess.BlackBishop || (isDiagonal && (piece == chess.WhiteQueen || piece == chess.BlackQueen)) {
 		x := x1
 		y := y1
 		dx := (x2 - x1) / math.Abs(x2-x1)
@@ -216,10 +252,10 @@ func (h *Hardware) Update(ctx context.Context, stateSender chess_state.StateSend
 			if int(x) == int(x2) && int(y) == int(y2) {
 				break
 			}
-			if err := h.checkAndMove(gamePosition, x+dx, y, x+1.25*dx, y-0.25*dy); err != nil {
+			if err := h.checkAndMove(gamePosition, x+dx, y, x+dx+0.35*dx, y-0.35*dy); err != nil {
 				return err
 			}
-			if err := h.checkAndMove(gamePosition, x, y+dy, x-0.25*dx, y+1.25*dx); err != nil {
+			if err := h.checkAndMove(gamePosition, x, y+dy, x-0.35*dx, y+dy+0.35*dy); err != nil {
 				return err
 			}
 

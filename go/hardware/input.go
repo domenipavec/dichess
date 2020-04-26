@@ -11,6 +11,9 @@ import (
 )
 
 func (h *Hardware) MakeMove(ctx context.Context, stateSender chess_state.StateSender, game *chess.Game) (*chess_state.Move, error) {
+	<-ctx.Done()
+	return nil, nil
+
 	time.Sleep(time.Millisecond * 100)
 	initialData, err := h.matrix.Read()
 	if err != nil {
@@ -93,6 +96,7 @@ func (h *Hardware) MakeMove(ctx context.Context, stateSender chess_state.StateSe
 }
 
 func (h *Hardware) StartGame(stateSender chess_state.StateSender) error {
+	return nil
 	for {
 		missing := "Waiting for all pieces to start the game. Missing: "
 		commaNeeded := false
@@ -122,12 +126,6 @@ func (h *Hardware) StartGame(stateSender chess_state.StateSender) error {
 		}
 		for i := 0; i < 8; i++ {
 			for j := 6; j < 8; j++ {
-				if i == 0 && j == 6 {
-					continue
-				}
-				if i == 2 && j == 6 {
-					continue
-				}
 				if !data[i][j] {
 					addMissing(i, j)
 					done = false
@@ -135,6 +133,7 @@ func (h *Hardware) StartGame(stateSender chess_state.StateSender) error {
 			}
 		}
 		if done {
+			log.Printf("Starting: %v", data)
 			break
 		}
 
@@ -156,6 +155,8 @@ func (h *Hardware) ReadMatrix() ([][]bool, error) {
 }
 
 func (h *Hardware) WaitFor(ctx context.Context, i, j int, v bool) error {
+	time.Sleep(time.Second)
+	return nil
 	for {
 		data, err := h.matrix.Read()
 		if err != nil {

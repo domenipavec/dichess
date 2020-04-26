@@ -70,6 +70,7 @@ class Request_Type extends $pb.ProtobufEnum {
   static const Request_Type MOVE = Request_Type._(8, 'MOVE');
   static const Request_Type NEW_GAME = Request_Type._(9, 'NEW_GAME');
   static const Request_Type GET_SETTINGS = Request_Type._(10, 'GET_SETTINGS');
+  static const Request_Type START_GAME = Request_Type._(11, 'START_GAME');
 
   static const $core.List<Request_Type> values = <Request_Type> [
     NOOP,
@@ -83,6 +84,7 @@ class Request_Type extends $pb.ProtobufEnum {
     MOVE,
     NEW_GAME,
     GET_SETTINGS,
+    START_GAME,
   ];
 
   static final $core.Map<$core.int, Request_Type> _byValue = $pb.ProtobufEnum.initByValue(values);

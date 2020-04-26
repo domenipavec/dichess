@@ -39,6 +39,7 @@ class DeviceScreen extends StatelessWidget {
             settings: bluetoothConnectionCN.latestResponse.settings,
             state: bluetoothConnectionCN.state,
             update: bluetoothConnectionCN.updateSettings,
+            start: bluetoothConnectionCN.startGame,
           );
         }
         return Scaffold(

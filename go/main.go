@@ -102,6 +102,7 @@ func main() {
 	controller := &chess_state.Controller{Observers: observers, StateSenders: stateSenders}
 	server := bluetooth.NewServer(btChannel, controller, wpa)
 	controller.Inputs = append(controller.Inputs, server)
+	controller.GameStarters = append(controller.GameStarters, server)
 
 	hw.Settings = controller
 	if voice != nil {

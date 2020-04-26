@@ -87,6 +87,8 @@ message Request {
 		NEW_GAME = 9;
 
 		GET_SETTINGS = 10;
+
+		START_GAME = 11;
 	}
 	Type type = 1;
 

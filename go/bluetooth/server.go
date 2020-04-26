@@ -22,7 +22,8 @@ type Server struct {
 	mutex sync.Mutex
 	Wpa   *wpa.Wpa
 
-	moveChan chan string
+	moveChan  chan string
+	startChan chan bool
 
 	ln net.Listener
 }
@@ -33,7 +34,8 @@ func NewServer(channel int, controller *chess_state.Controller, wpa *wpa.Wpa) *S
 		Controller: controller,
 		Wpa:        wpa,
 
-		moveChan: make(chan string),
+		moveChan:  make(chan string),
+		startChan: make(chan bool),
 	}
 }
 
@@ -108,5 +110,12 @@ func (s *Server) MakeMove(ctx context.Context, stateSender chess_state.StateSend
 		}
 		move.Move = mv
 		return move, nil
+	}
+}
+
+func (s *Server) StartGame(chess_state.StateSender) error {
+	select {
+	case <-s.startChan:
+		return nil
 	}
 }

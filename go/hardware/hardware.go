@@ -83,8 +83,8 @@ func (h *Hardware) InitializeReal() error {
 		MotorDriver: &MotorDriver{
 			Dev: &i2c.Dev{Addr: 21, Bus: bus},
 		},
-		MinusOffset: 195,
-		FirstOffset: 0,
+		MinusOffset: 10,
+		FirstOffset: 185,
 		EveryOffset: 250,
 		LastOffset:  0,
 	}
@@ -92,8 +92,8 @@ func (h *Hardware) InitializeReal() error {
 		MotorDriver: &MotorDriver{
 			Dev: &i2c.Dev{Addr: 22, Bus: bus},
 		},
-		MinusOffset: 225,
-		FirstOffset: 0,
+		MinusOffset: 10,
+		FirstOffset: 215,
 		EveryOffset: 250,
 		LastOffset:  0,
 	}
@@ -154,7 +154,7 @@ func (h *Hardware) SensorTest() {
 }
 
 // func (h *Hardware) Test() {
-//     h.coil.SetPwm(100)
+//     h.coil.SetPwm(190)
 //     defer h.coil.Off()
 //     defer h.xAxis.SetCurrent(10)
 //     defer h.yAxis.SetCurrent(10)
@@ -163,28 +163,23 @@ func (h *Hardware) SensorTest() {
 //     h.yAxis.SetCurrent(77)
 //     h.Do(
 //         func() error { return h.xAxis.GoTo(0, 40) },
-//         func() error { return h.yAxis.GoTo(0, 40) },
+//         func() error { return h.yAxis.GoTo(7, 40) },
 //     )
-//     h.xAxis.SetCurrent(10)
 //
+//     h.coil.On()
 //     for {
-//         for i := 0; i < 8; i++ {
-//             h.coil.On()
-//             h.yAxis.GoTo(float64(i), 40)
-//             h.coil.Off()
+//         j := 7
+//         for i := 3; i >= 0; i-- {
+//             h.xAxis.GoTo(float64(i), 40)
+//             if j == 7 {
+//                 j = 6
+//             } else {
+//                 j = 7
+//             }
+//             h.yAxis.GoTo(float64(j), 40)
+//             h.coil.Rotate(90)
+//             h.coil.Rotate(0)
 //             time.Sleep(time.Second)
-//             h.coil.On()
-//             time.Sleep(time.Second)
-//             h.coil.Off()
-//         }
-//         for i := 7; i >= 0; i-- {
-//             h.coil.On()
-//             h.yAxis.GoTo(float64(i), 40)
-//             h.coil.Off()
-//             time.Sleep(time.Second)
-//             h.coil.On()
-//             time.Sleep(time.Second)
-//             h.coil.Off()
 //         }
 //     }
 // }

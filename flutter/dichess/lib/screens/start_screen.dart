@@ -10,11 +10,13 @@ class StartScreen extends StatelessWidget {
     this.settings,
     this.state,
     this.update,
+    this.start,
   }) : super(key: key);
 
   final Settings settings;
   final String state;
   final Function update;
+  final Function start;
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +56,10 @@ class StartScreen extends StatelessWidget {
         ),
         ListTile(
           title: Text(state),
+        ),
+        RaisedButton(
+          onPressed: () { start(); },
+          child: Text('Start game'),
         ),
       ],
     );

@@ -218,6 +218,11 @@ func (h *connHandler) handleRequest(request *bluetoothpb.Request) error {
 		if err := h.sendUpdate(h.server.Controller.GetGame(), nil, h.server.Controller.GetSettings()); err != nil {
 			return err
 		}
+	case bluetoothpb.Request_START_GAME:
+		select {
+		case h.server.startChan <- true:
+		default:
+		}
 	}
 
 	return nil

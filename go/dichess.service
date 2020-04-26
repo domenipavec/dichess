@@ -1,0 +1,13 @@
+[Unit]
+Description=dichess service
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=root
+WorkingDirectory=/home/pi
+ExecStart=/home/pi/dichess
+Environment="GOOGLE_APPLICATION_CREDENTIALS=dichess-ba6e9ac8ca67.json"
+
+[Install]
+WantedBy=multi-user.target
