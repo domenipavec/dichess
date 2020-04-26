@@ -154,3 +154,22 @@ func (h *Hardware) ReadMatrix() ([][]bool, error) {
 	}
 	return h.matrix.Read()
 }
+
+func (h *Hardware) WaitFor(ctx context.Context, i, j int, v bool) error {
+	for {
+		data, err := h.matrix.Read()
+		if err != nil {
+			return err
+		}
+		if data[i][j] == v {
+			break
+		}
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+		}
+		time.Sleep(time.Millisecond * 100)
+	}
+	return nil
+}

@@ -25,14 +25,29 @@ func (v *Voice) Update(_ context.Context, stateSender chess_state.StateSender, g
 		}
 		return nil
 	}
-	if !move.ShouldSay {
+	if move == nil {
 		return nil
 	}
 	if move.Undo {
-		// TODO: say undo?
+		if err := v.Say("Move undo, please move manually.", texttospeechpb.SsmlVoiceGender_NEUTRAL); err != nil {
+			return err
+		}
 		return nil
 	}
 	gameMove := game.Game.Moves()[len(game.Game.Moves())-1]
+	if gameMove.HasTag(chess.KingSideCastle) || gameMove.HasTag(chess.QueenSideCastle) {
+		if err := v.Say("Castling, move manually please.", texttospeechpb.SsmlVoiceGender_NEUTRAL); err != nil {
+			return err
+		}
+	}
+	if gameMove.HasTag(chess.Capture) {
+		if err := v.Say(fmt.Sprintf("Piece capture moving to %s, please remove.", gameMove.S2().String()), texttospeechpb.SsmlVoiceGender_NEUTRAL); err != nil {
+			return err
+		}
+	}
+	if !move.ShouldSay {
+		return nil
+	}
 	piece := game.Game.Position().Board().Piece(gameMove.S2())
 	if piece == chess.NoPiece {
 		log.Printf("Wierd move with no piece: %v", move)

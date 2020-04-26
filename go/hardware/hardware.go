@@ -1,6 +1,9 @@
 package hardware
 
 import (
+	"log"
+	"time"
+
 	"github.com/matematik7/dichess/go/bluetoothpb"
 	"github.com/notnil/chess"
 	"github.com/pkg/errors"
@@ -80,18 +83,18 @@ func (h *Hardware) InitializeReal() error {
 		MotorDriver: &MotorDriver{
 			Dev: &i2c.Dev{Addr: 21, Bus: bus},
 		},
-		MinusOffset: 220,
+		MinusOffset: 195,
 		FirstOffset: 0,
-		EveryOffset: 247,
+		EveryOffset: 250,
 		LastOffset:  0,
 	}
 	h.xAxis = &RealAxis{
 		MotorDriver: &MotorDriver{
 			Dev: &i2c.Dev{Addr: 22, Bus: bus},
 		},
-		MinusOffset: 250,
+		MinusOffset: 225,
 		FirstOffset: 0,
-		EveryOffset: 247,
+		EveryOffset: 250,
 		LastOffset:  0,
 	}
 	h.coil = &RealCoil{
@@ -112,8 +115,8 @@ func (h *Hardware) InitializeReal() error {
 			gpioreg.ByName("GPIO19"),
 		},
 		Columns: []gpio.PinIO{
-			gpioreg.ByName("GPIO21"),
-			gpioreg.ByName("GPIO20"),
+			gpioreg.ByName("GPIO0"),
+			gpioreg.ByName("GPIO26"),
 			gpioreg.ByName("GPIO16"),
 			gpioreg.ByName("GPIO12"),
 			gpioreg.ByName("GPIO25"),
@@ -136,9 +139,22 @@ func (h *Hardware) InitializeFake() error {
 	return h.Initialize()
 }
 
+func (h *Hardware) SensorTest() {
+	for {
+		data, err := h.matrix.Read()
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("Sensor data:")
+		for _, line := range data {
+			log.Println(line)
+		}
+		time.Sleep(time.Second)
+	}
+}
+
 // func (h *Hardware) Test() {
-//     pwm, _ := strconv.Atoi(os.Args[1])
-//     h.coil.SetPwm(uint8(pwm))
+//     h.coil.SetPwm(100)
 //     defer h.coil.Off()
 //     defer h.xAxis.SetCurrent(10)
 //     defer h.yAxis.SetCurrent(10)
@@ -150,18 +166,25 @@ func (h *Hardware) InitializeFake() error {
 //         func() error { return h.yAxis.GoTo(0, 40) },
 //     )
 //     h.xAxis.SetCurrent(10)
-//     h.yAxis.SetCurrent(10)
 //
 //     for {
-//         h.coil.Off()
-//         h.coil.Rotate(0)
-//         time.Sleep(time.Second)
-//         h.coil.On()
-//         h.coil.Rotate(120)
-//         h.coil.Rotate(90)
-//         h.coil.Off()
-//         time.Sleep(time.Second)
-//         // h.coil.Off()
-//         // time.Sleep(time.Second)
+//         for i := 0; i < 8; i++ {
+//             h.coil.On()
+//             h.yAxis.GoTo(float64(i), 40)
+//             h.coil.Off()
+//             time.Sleep(time.Second)
+//             h.coil.On()
+//             time.Sleep(time.Second)
+//             h.coil.Off()
+//         }
+//         for i := 7; i >= 0; i-- {
+//             h.coil.On()
+//             h.yAxis.GoTo(float64(i), 40)
+//             h.coil.Off()
+//             time.Sleep(time.Second)
+//             h.coil.On()
+//             time.Sleep(time.Second)
+//             h.coil.Off()
+//         }
 //     }
 // }

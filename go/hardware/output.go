@@ -2,9 +2,9 @@ package hardware
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"math"
-	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/matematik7/dichess/go/chess_state"
@@ -131,7 +131,7 @@ func (h *Hardware) Update(ctx context.Context, stateSender chess_state.StateSend
 	if h.fake {
 		return nil
 	}
-	if move == nil || !move.ShouldMove {
+	if move == nil || !move.ShouldMove || move.Undo {
 		return nil
 	}
 	if move.Undo {
@@ -143,25 +143,17 @@ func (h *Hardware) Update(ctx context.Context, stateSender chess_state.StateSend
 		return nil
 	}
 	gameMove := moves[len(moves)-1]
+	if gameMove.HasTag(chess.KingSideCastle) || gameMove.HasTag(chess.QueenSideCastle) {
+		stateSender.StateSend("Waiting for castling to complete.")
+		return h.WaitFor(ctx, int(gameMove.S2().File()), int(gameMove.S2().Rank()), true)
+	}
 	gamePosition := game.Game.Positions()[len(game.Game.Positions())-2]
 	piece := gamePosition.Board().Piece(gameMove.S1())
-	if (piece != chess.WhitePawn && piece != chess.BlackPawn) || gameMove.HasTag(chess.Capture) {
-		for {
-			data, err := h.matrix.Read()
-			if err != nil {
-				return err
-			}
-			if data[gameMove.S2().File()][gameMove.S2().Rank()] {
-				break
-			}
-			select {
-			case <-ctx.Done():
-				return nil
-			default:
-			}
-			time.Sleep(time.Millisecond * 100)
+	if gameMove.HasTag(chess.Capture) {
+		stateSender.StateSend(fmt.Sprintf("Waiting for captured piece on %v to be removed.", gameMove.S2().String()))
+		if err := h.WaitFor(ctx, int(gameMove.S2().File()), int(gameMove.S2().Rank()), false); err != nil {
+			return err
 		}
-		return nil
 	}
 
 	if err := h.xAxis.SetCurrent(77); err != nil {
@@ -184,12 +176,8 @@ func (h *Hardware) Update(ctx context.Context, stateSender chess_state.StateSend
 	x2 := float64(gameMove.S2().File())
 	y2 := float64(gameMove.S2().Rank())
 
-	// Implement castle and capture
-	// Implement promotion
-	// Implement taking pieces
-	// Implement knight moves
-	// Implement laufer moves
-	if piece == chess.WhiteKnight || piece == chess.BlackKnight {
+	isDiagonal := math.Abs(x1-x2) > 0 && math.Abs(y1-y2) > 0
+	if piece == chess.WhiteKnight || piece == chess.BlackKnight || (isDiagonal && (piece == chess.WhiteQueen || piece == chess.BlackQueen)) {
 		if math.Abs(y2-y1) == 2 {
 			if err := h.checkAndMove(gamePosition, x1, y1+(y2-y1)*0.5, x1-(x2-x1)*0.5, y1+(y2-y1)*0.5); err != nil {
 				return err

@@ -27,6 +27,7 @@ var (
 	noHardware = flag.Bool("no_hardware", false, "disable hardware init and use fake")
 	noUpdate   = flag.Bool("no_update", false, "disable updates")
 	cpuprofile = flag.Bool("cpuprofile", false, "write cpu profile to file")
+	sensortest = flag.Bool("sensortest", false, "logs sensor output for testing")
 )
 
 const btChannel = 1
@@ -69,6 +70,9 @@ func main() {
 		if err := hw.InitializeReal(); err != nil {
 			log.Fatal(err)
 		}
+	}
+	if *sensortest {
+		hw.SensorTest()
 	}
 	var hwint interface{} = hw
 	if hwtest, ok := hwint.(Tester); ok {
