@@ -54,7 +54,7 @@ type Hardware struct {
 type movedPiece struct {
 	x1, y1 float64
 	x2, y2 float64
-	color  chess.Color
+	piece  chess.Piece
 }
 
 func New() *Hardware {

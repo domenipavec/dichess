@@ -17,22 +17,22 @@ var translations = map[bluetoothpb.Settings_Language]map[string]string{
 		"ambiguous": "is ambiguous. Move from",
 	},
 }
-var piecesStrings = map[bluetoothpb.Settings_Language]map[chess.Piece][]string{
-	bluetoothpb.Settings_SLOVENIAN: map[chess.Piece][]string{
-		chess.WhiteKing:   []string{"kralj"},
-		chess.WhiteQueen:  []string{"kraljica", "dama"},
-		chess.WhiteRook:   []string{"top", "trdnjava"},
-		chess.WhiteBishop: []string{"lovec", "tekač", "laufer"},
-		chess.WhiteKnight: []string{"skakač", "konj"},
-		chess.WhitePawn:   []string{"kmet"},
+var piecesStrings = map[bluetoothpb.Settings_Language]map[chess.PieceType][]string{
+	bluetoothpb.Settings_SLOVENIAN: map[chess.PieceType][]string{
+		chess.King:   []string{"kralj"},
+		chess.Queen:  []string{"kraljica", "dama"},
+		chess.Rook:   []string{"top", "trdnjava"},
+		chess.Bishop: []string{"lovec", "tekač", "laufer"},
+		chess.Knight: []string{"skakač", "konj"},
+		chess.Pawn:   []string{"kmet"},
 	},
-	bluetoothpb.Settings_ENGLISH: map[chess.Piece][]string{
-		chess.WhiteKing:   []string{"king"},
-		chess.WhiteQueen:  []string{"queen"},
-		chess.WhiteRook:   []string{"rook", "castle"},
-		chess.WhiteBishop: []string{"bishop"},
-		chess.WhiteKnight: []string{"knight"},
-		chess.WhitePawn:   []string{"pawn"},
+	bluetoothpb.Settings_ENGLISH: map[chess.PieceType][]string{
+		chess.King:   []string{"king"},
+		chess.Queen:  []string{"queen"},
+		chess.Rook:   []string{"rook", "castle"},
+		chess.Bishop: []string{"bishop"},
+		chess.Knight: []string{"knight"},
+		chess.Pawn:   []string{"pawn"},
 	},
 }
 

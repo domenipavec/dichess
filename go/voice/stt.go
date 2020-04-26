@@ -235,11 +235,7 @@ func (v *Voice) generatePhrases(game *chess.Game, lang bluetoothpb.Settings_Lang
 			log.Printf("Wierd move with no piece: %v", move)
 			continue
 		}
-		// normalize to white pieces for getting string
-		if piece > chess.WhitePawn {
-			piece -= chess.WhitePawn
-		}
-		for _, pieceStr := range piecesStrings[lang][piece] {
+		for _, pieceStr := range piecesStrings[lang][piece.Type()] {
 			current := fmt.Sprintf("%s %s %s", pieceStr, translations[lang]["to"], move.S2().String())
 			phraseMap[current] = true
 		}
@@ -258,28 +254,26 @@ func (v *Voice) parseMove(game *chess.Game, phrase string, lang bluetoothpb.Sett
 		return nil, errors.Wrapf(err, "couldn't parse phrase %v", phrase)
 	}
 
-	piece := chess.NoPiece
+	pieceType := chess.NoPieceType
 	for searchPiece, searchStrings := range piecesStrings[lang] {
 		for _, searchString := range searchStrings {
 			if searchString == pieceStr {
-				piece = searchPiece
+				pieceType = searchPiece
 				break
 			}
 		}
-		if piece != chess.NoPiece {
+		if pieceType != chess.NoPieceType {
 			break
 		}
 	}
-	if piece == chess.NoPiece {
+	if pieceType == chess.NoPieceType {
 		return nil, errors.Errorf("couldn't find piece %s", pieceStr)
-	}
-	if game.Position().Turn() == chess.Black {
-		piece += chess.WhitePawn
 	}
 
 	var moves []*chess.Move
 	for _, move := range game.ValidMoves() {
-		if piece == game.Position().Board().Piece(move.S1()) && move.S2().String() == squareStr {
+		piece := game.Position().Board().Piece(move.S1())
+		if pieceType == piece.Type() && move.S2().String() == squareStr {
 			moves = append(moves, move)
 		}
 	}

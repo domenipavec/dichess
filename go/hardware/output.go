@@ -32,7 +32,7 @@ func (h *Hardware) Do(fs ...func() error) error {
 
 func (h *Hardware) undoAllMovedPieces() error {
 	for _, p := range h.movedPieces {
-		if err := h.move(p.x2, p.y2, p.x1, p.y1, p.color, true); err != nil {
+		if err := h.move(p.x2, p.y2, p.x1, p.y1, p.piece, false); err != nil {
 			return err
 		}
 	}
@@ -46,7 +46,7 @@ func (h *Hardware) checkAndMove(position *chess.Position, x1, y1, x2, y2 float64
 		return nil
 	}
 
-	if err := h.move(x1, y1, x2, y2, piece.Color(), true); err != nil {
+	if err := h.move(x1, y1, x2, y2, piece, false); err != nil {
 		return errors.Wrap(err, "couldn't check and move")
 	}
 
@@ -55,13 +55,13 @@ func (h *Hardware) checkAndMove(position *chess.Position, x1, y1, x2, y2 float64
 		y1:    y1,
 		x2:    x2,
 		y2:    y2,
-		color: piece.Color(),
+		piece: piece,
 	})
 
 	return nil
 }
 
-func (h *Hardware) move(x1, y1, x2, y2 float64, color chess.Color, rotate bool) error {
+func (h *Hardware) move(x1, y1, x2, y2 float64, piece chess.Piece, rotate bool) error {
 	if err := h.Do(
 		func() error { return h.xAxis.GoTo(x1, 40) },
 		func() error { return h.yAxis.GoTo(y1, 40) },
@@ -73,16 +73,26 @@ func (h *Hardware) move(x1, y1, x2, y2 float64, color chess.Color, rotate bool) 
 		return err
 	}
 
-	log.Printf("move %v piece (%f, %f) -> (%f, %f)", color, x1, y1, x2, y2)
+	log.Printf("move %v piece (%f, %f) -> (%f, %f)", piece, x1, y1, x2, y2)
 	if rotate {
 		angle := 0.0
-		if color == chess.White {
+		if piece.Color() == chess.White {
 			angle = math.Atan2(x2-x1, y2-y1) / math.Pi * 180
 		} else {
 			angle = math.Atan2(x1-x2, y1-y2) / math.Pi * 180
 		}
 		log.Printf("angle: %f", angle)
+		if err := h.coil.SetPwm(rotateStrength[piece.Type()]); err != nil {
+			return err
+		}
 		if err := h.coil.Rotate(int(angle)); err != nil {
+			return err
+		}
+		if err := h.coil.SetPwm(forwardStrength[piece.Type()]); err != nil {
+			return err
+		}
+	} else {
+		if err := h.coil.SetPwm(sidewayStrength[piece.Type()]); err != nil {
 			return err
 		}
 	}
@@ -111,6 +121,9 @@ func (h *Hardware) move(x1, y1, x2, y2 float64, color chess.Color, rotate bool) 
 	}
 
 	if rotate {
+		if err := h.coil.SetPwm(rotateStrength[piece.Type()]); err != nil {
+			return err
+		}
 		if err := h.coil.Rotate(0); err != nil {
 			return err
 		}
@@ -217,7 +230,7 @@ func (h *Hardware) Update(ctx context.Context, stateSender chess_state.StateSend
 
 	if err := h.move(
 		x1, y1, x2, y2,
-		gamePosition.Turn(),
+		piece,
 		true, /* rotate */
 	); err != nil {
 		return err

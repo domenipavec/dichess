@@ -59,7 +59,7 @@ func (v *Voice) Update(_ context.Context, stateSender chess_state.StateSender, g
 	}
 
 	lang := bluetoothpb.Settings_ENGLISH
-	txt := fmt.Sprintf("%s %s %s", piecesStrings[lang][piece][0], translations[lang]["to"], gameMove.S2().String())
+	txt := fmt.Sprintf("%s %s %s", piecesStrings[lang][piece.Type()][0], translations[lang]["to"], gameMove.S2().String())
 	if err := v.Say(txt, texttospeechpb.SsmlVoiceGender_NEUTRAL); err != nil {
 		return err
 	}
