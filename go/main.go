@@ -21,7 +21,7 @@ import (
 	"github.com/tj/go-update/stores/github"
 )
 
-const currentVersion = "0.1.3"
+const currentVersion = "0.1.4"
 
 var (
 	noHardware = flag.Bool("no_hardware", false, "disable hardware init and use fake")
